@@ -6,53 +6,72 @@ from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 import configparser
 from configparser import ExtendedInterpolation
 
-CONFIG_FILES = ['prosperAPI_local.cfg','prosperAPI.cfg'] #TODO: change to .cfg?
+#CONFIG_FILES = ['prosperAPI_local.cfg','prosperAPI.cfg'] #TODO: change to .cfg?
 
-def get_config(subpath=''):
+LOGGER_DEFAULTS = {
+    'log_level': 'DEBUG',
+    'log_freq': 'd',
+    'log_total': '60',
+    'log_email_level': 'CRITICAL'
+}
+
+def get_config(
+        config_filepath
+):
     '''returns config object for parsing global values'''
     config = configparser.ConfigParser(
-        interpolation  = ExtendedInterpolation(),
-        allow_no_value = True,
-        delimiters     = ('=')
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True,
+        delimiters=('=')
     )
-    config_filepath = ''
-    for config_file in CONFIG_FILES:
-        if subpath:
-            config_filepath = os.path.join('..', subpath, config_file)
-        else:
-            config_filepath = os.path.join('..', 'common', config_file)
-        if os.path.isfile(config_filepath):
-            break
+
+    local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
+
+    real_config_filepath = ''
+    if os.path.isfile(local_config_filepath):
+        #if _local.cfg version exists, use it instead
+        real_config_filepath = local_config_filepath
     else:
-        return None
-        #ERROR: unable to find configfile
+        #else use tracked default
+        real_config_filepath = config_filepath
 
-    if os.path.exists(config_filepath):
-        with open(config_filepath, 'r') as filehandle:
-            config.read_file(filehandle)
-        return config
-    return None
+    with open(real_config_filepath, 'r') as filehandle:
+        config.read_file(filehandle)
+    return config
+    #TODO: add cfg error handling just in case
 
-def create_logger(logName, logLevel_override = ''):
+def create_logger(
+        logName,
+        logPath,
+        configObject = None,
+        logLevel_override = ''
+):
     '''creates logging handle for programs'''
-    tmpConfig = get_config('common')
+    if not configObject:
+        #build up mini-config off in-script defaults
+        tmpconfig = configparser.ConfigParser()
+        tmpconfig['LOGGING'] = LOGGER_DEFAULTS
+        configObject = tmpconfig
 
-    logFolder = os.path.join('../', tmpConfig.get('LOGGING', 'logFolder'))
-    if not os.path.exists(logFolder):
-        os.makedirs(logFolder)
+    if not os.path.exists(logPath):
+        os.makedirs(logPath)
+    #logFolder = os.path.join('../', tmpConfig.get('LOGGING', 'logFolder'))
+    #if not os.path.exists(logFolder):
+    #    os.makedirs(logFolder)
 
     Logger = logging.getLogger(logName)
 
-    logLevel  = tmpConfig.get('LOGGING', 'logLevel')
-    logFreq   = tmpConfig.get('LOGGING', 'logFreq')
-    logTotal  = tmpConfig.get('LOGGING', 'logTotal')
+    logLevel  = configObject.get('LOGGING', 'logLevel')
+    logFreq   = configObject.get('LOGGING', 'logFreq')
+    logTotal  = configObject.get('LOGGING', 'logTotal')
+
     logName   = logName + '.log'
     logFormat = '%(asctime)s;%(levelname)s;%(funcName)s;%(message)s'
-    print(logName + ':' + logLevel)
+    #print(logName + ':' + logLevel)
     if logLevel_override:
         logLevel = logLevel_override
 
-    logFullpath = os.path.join(logFolder, logName)
+    logFullpath = os.path.join(logPath, logName)
 
     Logger.setLevel(logLevel)
     generalHandler = TimedRotatingFileHandler(
@@ -65,24 +84,30 @@ def create_logger(logName, logLevel_override = ''):
     generalHandler.setFormatter(formatter)
     Logger.addHandler(generalHandler)
 
-    emailSource     = tmpConfig.get('LOGGING', 'emailSource')
-    emailRecipients = tmpConfig.get('LOGGING', 'emailRecipients')
-    emailUsername   = tmpConfig.get('LOGGING', 'emailUsername')
-    emailFromaddr   = tmpConfig.get('LOGGING', 'emailFromaddr')
-    emailSecret     = tmpConfig.get('LOGGING', 'emailSecret')
-    emailServer     = tmpConfig.get('LOGGING', 'emailServer')
-    emailPort       = tmpConfig.get('LOGGING', 'emailPort')
-    emailTitle      = logName + ' CRITICAL ERROR'
+    bool_doEmail = False
+    try:
+        emailSource     = configObject.get('LOGGING', 'emailSource')
+        emailRecipients = configObject.get('LOGGING', 'emailRecipients')
+        emailUsername   = configObject.get('LOGGING', 'emailUsername')
+        emailFromaddr   = configObject.get('LOGGING', 'emailFromaddr')
+        emailSecret     = configObject.get('LOGGING', 'emailSecret')
+        emailServer     = configObject.get('LOGGING', 'emailServer')
+        emailPort       = configObject.get('LOGGING', 'emailPort')
+        emailTitle      = logName + ' CRITICAL ERROR'
 
-    bool_doEmail = (
-        emailSource     and
-        emailRecipients and
-        emailUsername   and
-        emailFromaddr   and
-        emailSecret     and
-        emailServer     and
-        emailPort
-    )
+        bool_doEmail = (
+            emailSource     and
+            emailRecipients and
+            emailUsername   and
+            emailFromaddr   and
+            emailSecret     and
+            emailServer     and
+            emailPort
+        )
+    except KeyError as error:
+        #email keys not included, don't set up SMTPHandler
+        bool_doEmail = False
+
     if bool_doEmail:
         emailHandler = SMTPHandler(
             mailhost    = emailServer + ':' + emailPort,
