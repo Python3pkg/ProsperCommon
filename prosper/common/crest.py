@@ -220,7 +220,7 @@ def fetch_crest(endpointStr, value):
     URL=''' + crest_endpoint_URL + '''
     LAST_ERROR=''' + last_error
         helpMsg = '''CREST Outage?'''
-        criticalStr = prosperAPI_utility.email_body_builder(
+        criticalStr = utilities.email_body_builder(
             criticalMessage,
             helpMsg
         )
