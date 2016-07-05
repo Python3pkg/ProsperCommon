@@ -1,4 +1,4 @@
-'''prosperAPI_utility.py: worker functions for CREST calls'''
+'''utilities.py: worker functions for CREST calls'''
 
 import os
 import logging
@@ -61,9 +61,10 @@ def create_logger(
 
     Logger = logging.getLogger(logName)
 
-    logLevel  = configObject.get('LOGGING', 'logLevel')
-    logFreq   = configObject.get('LOGGING', 'logFreq')
-    logTotal  = configObject.get('LOGGING', 'logTotal')
+    print(configObject)
+    logLevel  = configObject.get('LOGGING', 'log_level')
+    logFreq   = configObject.get('LOGGING', 'log_freq')
+    logTotal  = configObject.get('LOGGING', 'log_total')
 
     logName   = logName + '.log'
     logFormat = '%(asctime)s;%(levelname)s;%(funcName)s;%(message)s'
@@ -104,7 +105,7 @@ def create_logger(
             emailServer     and
             emailPort
         )
-    except KeyError as error:
+    except (KeyError, configparser.NoOptionError) as error:
         #email keys not included, don't set up SMTPHandler
         bool_doEmail = False
 

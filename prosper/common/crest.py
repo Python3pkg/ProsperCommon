@@ -4,18 +4,30 @@ import datetime
 import os
 import json
 import requests
-import prosperAPI_utility
+from prosper.common import utilities
+HERE = os.path.abspath(os.path.dirname(__file__))
+CONFIG_FILEPATH = os.path.join(HERE, 'crest.cfg')
+config = utilities.get_config(CONFIG_FILEPATH)
+LOG_PATH = config.get('GLOBAL', 'log_path')
+if not LOG_PATH: #blank line
+    LOG_PATH = os.path.join(HERE, 'logs')
+    if not os.path.exists(LOG_PATH):
+        os.makedirs(LOG_PATH)
 
-config = prosperAPI_utility.get_config('common')
-crestLogger = prosperAPI_utility.create_logger('crest_utility')
+crestLogger = utilities.create_logger(
+    'crest_utility',
+    HERE,
+    None,
+    config.get('GLOBAL', 'log_level')
+)
 
 #### GLOBALS ####
-CACHE_ABSPATH = os.path.join('..', config.get('CREST', 'cache_path'))
+CACHE_ABSPATH = os.path.join(HERE, config.get('CACHING', 'cache_path'))
 print(CACHE_ABSPATH)
 if not os.path.exists(CACHE_ABSPATH):
     os.mkdir(CACHE_ABSPATH)
-SDE_CACHE_LIMIT = int(config.get('CREST', 'sde_cache_limit'))
-CREST_URL   = config.get('CREST', 'source_url')
+SDE_CACHE_LIMIT = int(config.get('CACHING', 'sde_cache_limit'))
+CREST_URL   = config.get('ROOTPATH', 'public_crest')
 USERAGENT   = config.get('GLOBAL', 'useragent')
 RETRY_LIMIT = int(config.get('GLOBAL', 'default_retries'))
 
@@ -39,31 +51,37 @@ class CRESTresults(object):
             self.objectID   = crestJSON['id']
             self.objectName = crestJSON['name']
         except KeyError as err:
-            errorStr = 'Unable to load name/ID from CREST object ' + \
-                str(endpointType) + ' ' + str(err)
-            crestLogger.error(errorStr)
+            error_str = 'Unable to laod name/ID from CREST object {endpointType} {err}'
+            error_str = error_str.format(
+                endpoint_type=endpointType,
+                err=err
+            )
+            crestLogger.error(error_str)
             crestLogger.debug(crestJSON)
             return self.bool_SuccessStatus
 
         self.crestResponse = crestJSON
         self.endpointType  = endpointType
         self.bool_SuccessStatus = True
-        infoStr = 'Success: parsed ' + str(self.objectID) + ':' + \
-            str(self.objectName) + ' ' +\
-            'from ' + str(endpointType)
-        crestLogger.info(infoStr)
+        info_str = 'Success: parsed {objectID}:{objectName} from: {endpointType}'
+        info_str = info_str.format(
+            objectID=self.objectID,
+            objectName=self.objectName,
+            endpointType=endpointType
+        )
+        crestLogger.info(info_str)
         return self.bool_SuccessStatus
 
     def write_cache_response(self, crestJSON, endpointType):
         '''update on-file cache'''
-        cachePath = CACHE_ABSPATH + '/' + endpointType
+        cachePath = os.path.join(CACHE_ABSPATH, endpointType)
         if not os.path.exists(cachePath):
             #TODO: repeated function
             os.mkdir(cachePath)
             crestLogger.info('Created cache path: ' + cachePath)
             return False
 
-        cacheFilePath  = cachePath + '/' + str(self.objectID) + '.json'
+        cacheFilePath  = os.path.join(cachePath, str(self.objectID) + '.json')
         bool_writeFile = False
         if os.path.isfile(cacheFilePath):
             #cache exists on file
