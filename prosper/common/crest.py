@@ -16,7 +16,7 @@ if not LOG_PATH: #blank line
 
 crestLogger = utilities.create_logger(
     'crest_utility',
-    HERE,
+    LOG_PATH,
     None,
     config.get('GLOBAL', 'log_level')
 )
