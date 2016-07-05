@@ -118,16 +118,7 @@ def test_typeid(typeID):
         crestLogger.error(errorStr)
         return None
 
-    jsonObj = None
-    cacheResponse = check_cache(typeID, 'types')
-    if not cacheResponse:
-        crestLogger.info('fetching crest ' + str(typeID))
-        crestResponse = fetch_crest('inventory/types', typeID)    #test CREST endpoint
-        jsonObj = crestResponse
-    else:
-        crestLogger.info('using local cache ' + str(typeID))
-        jsonObj = cacheResponse
-
+    jsonObj = fetch_typeid(typeID)
     validCrest = crestObj.parse_crest_response(jsonObj, 'types')
     crestObj.write_cache_response(jsonObj, 'types')
     if validCrest:
@@ -138,6 +129,24 @@ def test_typeid(typeID):
         errorStr = 'invalid crestObj'
         crestLogger.error(errorStr)
         return None
+
+def fetch_typeid(typeID, override_cache=False):
+    '''fetches typeid conversion from CREST or cache'''
+    endpoint_url = CREST_URL + config.get('RESOURCES', 'inventory_types')
+    endpoint_url = endpoint_url.format(
+        typeID=typeID
+    )
+    jsonObj = None
+    cacheResponse = check_cache(typeID, 'types')
+    if (not cacheResponse) or override_cache:
+        crestLogger.info('fetching crest ' + str(typeID))
+        crestResponse = fetch_crest(endpoint_url)    #test CREST endpoint
+        jsonObj = crestResponse
+    else:
+        crestLogger.info('using local cache ' + str(typeID))
+        jsonObj = cacheResponse
+
+    return jsonObj
 
 def test_regionid(regionID):
     '''Validates regionID is queryable'''
@@ -150,14 +159,7 @@ def test_regionid(regionID):
         crestLogger.error(errorStr)
         return None
 
-    jsonObj = None
-    cacheResponse = check_cache(regionID, 'regions')
-    if not cacheResponse:
-        crestResponse = fetch_crest('regions', regionID)  #test CREST endpoint
-        jsonObj = crestResponse
-    else:
-        jsonObj = cacheResponse
-
+    jsonObj = fetch_regionid(regionID)
     validCrest = crestObj.parse_crest_response(jsonObj, 'regions')
     crestObj.write_cache_response(jsonObj, 'regions')
     if validCrest:
@@ -169,20 +171,49 @@ def test_regionid(regionID):
         crestLogger.error(errorStr)
         return None
 
-def fetch_crest(endpointStr, value):
+def fetch_regionid(regionID, override_cache=False):
+    '''fetches regionid conversion from CREST or cache'''
+    endpoint_url = CREST_URL + config.get('RESOURCES', 'map_regions')
+    endpoint_url = endpoint_url.format(
+        regionID=regionID
+    )
+    jsonObj = None
+    cacheResponse = check_cache(regionID, 'regions')
+    if (not cacheResponse) or override_cache:
+        crestResponse = fetch_crest(endpoint_url)  #test CREST endpoint
+        jsonObj = crestResponse
+    else:
+        jsonObj = cacheResponse
+
+    return jsonObj
+
+def fetch_market_history(typeID, regionID, override_cache=False):
+    '''fetches market history from CREST or cache'''
+    endpoint_url = CREST_URL + config.get('RESOURCES', 'market_history')
+    endpoint_url = endpoint_url.format(
+        typeID=typeID,
+        regionID=regionID
+    )
+    jsonObj = None
+    #TODO: cached market_history utility?
+    jsonObj = fetch_crest(endpoint_url)
+    return jsonObj
+
+#def fetch_crest(endpointStr, value):
+def fetch_crest(crestURL):
     '''Fetches CREST endpoints and returns JSON.  Has retry built in'''
     crestResponse = None
-    crest_endpoint_URL = CREST_URL + endpointStr + '/' + str(value) + '/'
-    print(crest_endpoint_URL)
+    #crest_endpoint_URL = CREST_URL + endpointStr + '/' + str(value) + '/'
+    print(crestURL)
     GET_headers = {
         'User-Agent': USERAGENT
     }
     last_error = ""
-    crestLogger.info('Fetching CREST: ' + crest_endpoint_URL)
+    crestLogger.info('Fetching CREST: ' + crestURL)
     for tries in range (0, RETRY_LIMIT):
         try:
             crest_request = requests.get(
-                crest_endpoint_URL,
+                crestURL,
                 headers=GET_headers
             )
         except requests.exceptions.ConnectTimeout as err:
@@ -216,16 +247,16 @@ def fetch_crest(endpointStr, value):
             crestLogger.error(last_error)
             continue #try again
     else:
-        criticalMessage = ''' ERROR: retries exceeded in crest_fetch()
-    URL=''' + crest_endpoint_URL + '''
+        critical_message = ''' ERROR: retries exceeded in crest_fetch()
+    URL=''' + crestURL + '''
     LAST_ERROR=''' + last_error
         helpMsg = '''CREST Outage?'''
-        criticalStr = utilities.email_body_builder(
-            criticalMessage,
+        critical_string = utilities.email_body_builder(
+            critical_message,
             helpMsg
         )
-        crestLogger.critical(criticalStr)
-    crestLogger.info('Fetched CREST:' + crest_endpoint_URL)
+        crestLogger.critical(critical_string)
+    crestLogger.info('Fetched CREST:' + crestURL)
     crestLogger.debug(crestResponse)
     return crestResponse
 
