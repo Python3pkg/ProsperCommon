@@ -61,13 +61,12 @@ def create_logger(
 
     Logger = logging.getLogger(logName)
 
-    print(configObject)
     logLevel  = configObject.get('LOGGING', 'log_level')
     logFreq   = configObject.get('LOGGING', 'log_freq')
     logTotal  = configObject.get('LOGGING', 'log_total')
 
     logName   = logName + '.log'
-    logFormat = '%(asctime)s;%(levelname)s;%(funcName)s;%(message)s'
+    logFormat = '[%(asctime)s;%(levelname)s;%(filename)s;%(lineno)s] %(message)s'
     #print(logName + ':' + logLevel)
     if logLevel_override:
         logLevel = logLevel_override
@@ -85,40 +84,40 @@ def create_logger(
     generalHandler.setFormatter(formatter)
     Logger.addHandler(generalHandler)
 
-    bool_doEmail = False
-    try:
-        emailSource     = configObject.get('LOGGING', 'emailSource')
-        emailRecipients = configObject.get('LOGGING', 'emailRecipients')
-        emailUsername   = configObject.get('LOGGING', 'emailUsername')
-        emailFromaddr   = configObject.get('LOGGING', 'emailFromaddr')
-        emailSecret     = configObject.get('LOGGING', 'emailSecret')
-        emailServer     = configObject.get('LOGGING', 'emailServer')
-        emailPort       = configObject.get('LOGGING', 'emailPort')
-        emailTitle      = logName + ' CRITICAL ERROR'
-
-        bool_doEmail = (
-            emailSource     and
-            emailRecipients and
-            emailUsername   and
-            emailFromaddr   and
-            emailSecret     and
-            emailServer     and
-            emailPort
-        )
-    except (KeyError, configparser.NoOptionError) as error:
-        #email keys not included, don't set up SMTPHandler
-        bool_doEmail = False
-
-    if bool_doEmail:
-        emailHandler = SMTPHandler(
-            mailhost    = emailServer + ':' + emailPort,
-            fromaddr    = emailFromaddr,
-            toaddrs     = str(emailRecipients).split(','),
-            subject     = emailTitle,
-            credentials = (emailUsername, emailSecret)
-        )
-        emailHandler.setFormatter(formatter)
-        Logger.addHandler(emailHandler)
+#    bool_doEmail = False
+#    try:
+#        emailSource     = configObject.get('LOGGING', 'emailSource')
+#        emailRecipients = configObject.get('LOGGING', 'emailRecipients')
+#        emailUsername   = configObject.get('LOGGING', 'emailUsername')
+#        emailFromaddr   = configObject.get('LOGGING', 'emailFromaddr')
+#        emailSecret     = configObject.get('LOGGING', 'emailSecret')
+#        emailServer     = configObject.get('LOGGING', 'emailServer')
+#        emailPort       = configObject.get('LOGGING', 'emailPort')
+#        emailTitle      = logName + ' CRITICAL ERROR'
+#
+#        bool_doEmail = (
+#            emailSource     and
+#            emailRecipients and
+#            emailUsername   and
+#            emailFromaddr   and
+#            emailSecret     and
+#            emailServer     and
+#            emailPort
+#        )
+#    except (KeyError, configparser.NoOptionError) as error:
+#        #email keys not included, don't set up SMTPHandler
+#        bool_doEmail = False
+#
+#    if bool_doEmail:
+#        emailHandler = SMTPHandler(
+#            mailhost    = emailServer + ':' + emailPort,
+#            fromaddr    = emailFromaddr,
+#            toaddrs     = str(emailRecipients).split(','),
+#            subject     = emailTitle,
+#            credentials = (emailUsername, emailSecret)
+#        )
+#        emailHandler.setFormatter(formatter)
+#        Logger.addHandler(emailHandler)
 
     return Logger
 

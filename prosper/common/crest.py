@@ -31,6 +31,11 @@ CREST_URL   = config.get('ROOTPATH', 'public_crest')
 USERAGENT   = config.get('GLOBAL', 'useragent')
 RETRY_LIMIT = int(config.get('GLOBAL', 'default_retries'))
 
+def override_logger(logObject):
+    '''switch logger to a different script's logger'''
+    global crestLogger
+    crestLogger = logObject
+
 class CRESTresults(object):
     '''Parser/storage for CREST/SDE lookups'''
     def __init__ (self):
