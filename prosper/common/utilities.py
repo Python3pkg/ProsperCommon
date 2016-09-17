@@ -128,8 +128,15 @@ def email_body_builder(errorMsg, helpMsg):
 
 def quandlfy_json(jsonObj):
     '''turn object from JSON into QUANDL-style JSON'''
-    None
+    pass
 
 def quandlfy_xml(xmlObj):
     '''turn object from XML into QUANDL-style XML'''
-    None
+    pass
+
+def log_and_debug(debug_str, debug=False, logger=None):
+    '''handles debug logger/print statements'''
+    if debug:
+        print(debug_str)
+    if logger:
+        logger.debug(debug_str)
