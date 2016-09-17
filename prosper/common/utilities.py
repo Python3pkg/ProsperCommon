@@ -149,6 +149,9 @@ class LoggerDebugger(object):
         self.do_debug=bool(debug)
         self.do_logger=bool(logger)
 
+    def get_logger(self):
+        return self.logger
+
     def message(self, message_str, log_level):
         '''actually do the thing'''
         if self.do_debug:
