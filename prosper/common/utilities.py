@@ -140,3 +140,18 @@ def log_and_debug(debug_str, debug=False, logger=None, log_level="DEBUG"):
         print(debug_str)
     if logger:
         logger.log(log_level.upper(), debug_str)
+
+class LoggerDebugger(object):
+    '''container for executing print/debug/log calls'''
+    def __init__(self, debug, logger):
+        self.debug=debug,
+        self.logger=logger
+        self.do_debug=bool(debug)
+        self.do_logger=bool(logger)
+
+    def message(self, message_str, log_level):
+        '''actually do the thing'''
+        if self.do_debug:
+            print(message_str)
+        if self.do_logger:
+            self.logger.log(message_str, log_level)
