@@ -134,9 +134,9 @@ def quandlfy_xml(xmlObj):
     '''turn object from XML into QUANDL-style XML'''
     pass
 
-def log_and_debug(debug_str, debug=False, logger=None):
+def log_and_debug(debug_str, debug=False, logger=None, log_level="DEBUG"):
     '''handles debug logger/print statements'''
     if debug:
         print(debug_str)
     if logger:
-        logger.debug(debug_str)
+        logger.log(log_level.upper(), debug_str)
