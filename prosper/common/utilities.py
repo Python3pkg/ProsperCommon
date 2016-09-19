@@ -144,10 +144,10 @@ def log_and_debug(debug_str, debug=False, logger=None, log_level="DEBUG"):
 class LoggerDebugger(object):
     '''container for executing print/debug/log calls'''
     def __init__(self, debug, logger):
-        self.debug=debug,
-        self.logger=logger
-        self.do_debug=bool(debug)
-        self.do_logger=bool(logger)
+        self.debug = debug,
+        self.logger = logger
+        self.do_debug = bool(debug)
+        self.do_logger = bool(logger)
 
     def get_logger(self):
         return self.logger
