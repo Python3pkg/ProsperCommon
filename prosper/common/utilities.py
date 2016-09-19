@@ -140,6 +140,32 @@ def log_and_debug(debug_str, debug=False, logger=None, log_level="DEBUG"):
         print(debug_str)
     if logger:
         logger.log(log_level.upper(), debug_str)
+class LoggerLevels:
+    '''enums for logger'''
+    #FIXME vvv import actual logger enum?
+    #https://docs.python.org/3/library/logging.html#logging-levels
+    CRITICAL = 50
+    ERROR = 40
+    WARNING = 30
+    INFO = 20
+    DEBUG = 10
+    NOTSET = 0
+
+    def str_to_level(self, log_level):
+        '''converts str to int enum'''
+        log_level = log_level.upper()
+        if  log_level == 'CRITICAL':
+            return self.CRITICAL
+        elif log_level == 'ERROR':
+            return self.ERROR
+        elif log_level == 'WARNING':
+            return self.WARNING
+        elif log_level == 'INFO':
+            return self.INFO
+        elif log_level == 'DEBUG':
+            return self.DEBUG
+        else:
+            return self.NOTSET
 
 class LoggerDebugger(object):
     '''container for executing print/debug/log calls'''
@@ -154,7 +180,8 @@ class LoggerDebugger(object):
 
     def message(self, message_str, log_level):
         '''actually do the thing'''
+        log_level_enum = LoggerLevels().str_to_level(log_level)
         if self.do_debug:
             print(message_str)
         if self.do_logger:
-            self.logger.log(log_level, message_str)
+            self.logger.log(log_level_enum, message_str)
