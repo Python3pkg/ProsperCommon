@@ -157,4 +157,4 @@ class LoggerDebugger(object):
         if self.do_debug:
             print(message_str)
         if self.do_logger:
-            self.logger.log(message_str, log_level)
+            self.logger.log(log_level, message_str)
