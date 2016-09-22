@@ -25,7 +25,8 @@ def get_config(
     config = configparser.ConfigParser(
         interpolation=ExtendedInterpolation(),
         allow_no_value=True,
-        delimiters=('=')
+        delimiters=('='),
+        inline_comment_prefixes=('#')
     )
 
     local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
