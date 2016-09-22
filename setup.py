@@ -8,7 +8,7 @@ HERE = path.abspath(path.dirname(__file__))
 
 setup(
     name='ProsperCommon',
-    version='0.0.2',
+    version='0.0.4',
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'

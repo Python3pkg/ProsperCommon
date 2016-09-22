@@ -5,6 +5,9 @@ import logging
 from logging.handlers import TimedRotatingFileHandler, SMTPHandler
 import configparser
 from configparser import ExtendedInterpolation
+from socket import gethostname, gethostbyname
+import smtplib
+from datetime import datetime
 
 #CONFIG_FILES = ['prosperAPI_local.cfg','prosperAPI.cfg'] #TODO: change to .cfg?
 
@@ -41,10 +44,10 @@ def get_config(
     #TODO: add cfg error handling just in case
 
 def create_logger(
-        logName,
-        logPath,
+        log_name,
+        log_path,
         configObject = None,
-        logLevel_override = ''
+        log_level_override = ''
 ):
     '''creates logging handle for programs'''
     if not configObject:
@@ -53,36 +56,125 @@ def create_logger(
         tmpconfig['LOGGING'] = LOGGER_DEFAULTS
         configObject = tmpconfig
 
-    if not os.path.exists(logPath):
-        os.makedirs(logPath)
+    if not os.path.exists(log_path):
+        os.makedirs(log_path)
     #logFolder = os.path.join('../', tmpConfig.get('LOGGING', 'logFolder'))
     #if not os.path.exists(logFolder):
     #    os.makedirs(logFolder)
 
-    Logger = logging.getLogger(logName)
+    Logger = logging.getLogger(log_name)
 
-    logLevel  = configObject.get('LOGGING', 'log_level')
-    logFreq   = configObject.get('LOGGING', 'log_freq')
-    logTotal  = configObject.get('LOGGING', 'log_total')
+    log_level = configObject.get('LOGGING', 'log_level')
+    log_freq  = configObject.get('LOGGING', 'log_freq')
+    log_total = configObject.get('LOGGING', 'log_total')
 
-    logName   = logName + '.log'
-    logFormat = '[%(asctime)s;%(levelname)s;%(filename)s;%(lineno)s] %(message)s'
+    log_name = log_name + '.log'
+    log_format = '[%(asctime)s;%(levelname)s;%(filename)s;%(lineno)s] %(message)s'
     #print(logName + ':' + logLevel)
-    if logLevel_override:
-        logLevel = logLevel_override
+    if log_level_override:
+        log_level = log_level_override
 
-    logFullpath = os.path.join(logPath, logName)
+    log_full_path = os.path.join(log_path, log_name)
 
-    Logger.setLevel(logLevel)
+    Logger.setLevel(log_level)
     generalHandler = TimedRotatingFileHandler(
-        logFullpath,
-        when        = logFreq,
-        interval    = 1,
-        backupCount = logTotal
+        log_full_path,
+        when=log_freq,
+        interval=1,
+        backupCount=log_total
     )
-    formatter = logging.Formatter(logFormat)
+    formatter = logging.Formatter(log_format)
     generalHandler.setFormatter(formatter)
     Logger.addHandler(generalHandler)
+
+    return Logger
+
+def send_email(
+        mail_subject,
+        error_msg,
+        config_object,
+        logger=None
+):
+    '''in case of catastrophic failure, raise the alarm'''
+    email_source     = config_object.get('LOGGING', 'email_source')
+    email_recipients = config_object.get('LOGGING', 'email_recipients')
+    email_username   = config_object.get('LOGGING', 'email_username')
+    #email_fromaddr   = config_object.get('LOGGING', 'email_fromaddr')
+    email_secret     = config_object.get('LOGGING', 'email_secret')
+    email_server     = config_object.get('LOGGING', 'email_server')
+    email_port       = config_object.get('LOGGING', 'email_port')
+
+    bool_do_email = all([   #only do mail if all values are set
+        email_source.strip(),
+        email_recipients.strip(),
+        email_username.strip(),
+        #email_fromaddr.strip(),
+        email_secret.strip(),
+        email_server.strip(),
+        email_port.strip()
+    ])
+
+    if bool_do_email:
+        subject = 'Prosper Error: ' + mail_subject
+        body = '''{error_msg}
+
+        alert time: {host_time}
+        raised by: {host_name}
+        location: {host_ip}'''.\
+            format(
+                error_msg=error_msg,
+                host_time=datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                host_name=str(gethostname()),
+                host_ip=str(gethostbyname(gethostname()))
+            )
+        payload = '''From: {source}\nTo: {recipients}\nSubject: {subject}\n\n{body}'''.\
+            format(
+                source=email_source,
+                recipients=email_recipients,
+                subject=subject,
+                body=body
+            )
+        try:
+            mailserver = smtplib.SMTP(email_server, int(email_port))
+            mailserver.ehlo()
+            mailserver.starttls()
+            mailserver.login(email_username, email_secret)
+            mailserver.sendmail(
+                email_source,
+                email_recipients.split(','),
+                payload
+            )
+            mailserver.close()
+            if logger:
+                logger.info(
+                    'Sent Email from {source} to {recipients} about {mail_subject}'.\
+                    format(
+                        source=email_source,
+                        recipients=email_recipients,
+                        mail_subject=mail_subject
+                    ))
+        except Exception as error_msg:
+            error_str = '''EXCEPTION unable to send email
+        exception={exception}
+        email_source={email_source}
+        email_recipients={email_recipients}
+        email_username={email_username}
+        email_secret=SECRET
+        email_server={email_server}
+        email_port={email_port}'''.\
+                format(
+                    exception=str(error_msg),
+                    email_source=email_source,
+                    email_recipients=email_recipients,
+                    email_username=email_username,
+                    email_server=email_server,
+                    email_port=email_port
+                )
+            if logger:
+                logger.critical(error_str)
+    else:
+        if logger:
+            logger.error('unable to send email - missing config information')
 
 #    bool_doEmail = False
 #    try:
@@ -119,12 +211,11 @@ def create_logger(
 #        emailHandler.setFormatter(formatter)
 #        Logger.addHandler(emailHandler)
 
-    return Logger
 
-def email_body_builder(errorMsg, helpMsg):
+def email_body_builder(error_msg, help_msg):
     '''Builds email message for easier reading with SMTPHandler'''
     #todo: format emails better
-    return errorMsg + '\n' + helpMsg
+    return error_msg + '\n' + help_msg
 
 def quandlfy_json(jsonObj):
     '''turn object from JSON into QUANDL-style JSON'''
@@ -134,12 +225,6 @@ def quandlfy_xml(xmlObj):
     '''turn object from XML into QUANDL-style XML'''
     pass
 
-def log_and_debug(debug_str, debug=False, logger=None, log_level="DEBUG"):
-    '''handles debug logger/print statements'''
-    if debug:
-        print(debug_str)
-    if logger:
-        logger.log(log_level.upper(), debug_str)
 class LoggerLevels:
     '''enums for logger'''
     #FIXME vvv import actual logger enum?
