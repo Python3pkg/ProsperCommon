@@ -88,6 +88,10 @@ def create_logger(
     generalHandler.setFormatter(formatter)
     Logger.addHandler(generalHandler)
 
+    if log_level_override == 'DEBUG':
+        stdout = logging.StreamHandler()
+        stdout.setFormatter(format)
+        Logger.addHandler(log_format)
     return Logger
 
 def send_email(
