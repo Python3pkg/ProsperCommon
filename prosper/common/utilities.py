@@ -161,25 +161,18 @@ def send_email(
                         recipients=email_recipients,
                         mail_subject=mail_subject
                     ))
-        except Exception as error_msg:
-            error_str = '''EXCEPTION unable to send email
-        exception={exception}
-        email_source={email_source}
-        email_recipients={email_recipients}
-        email_username={email_username}
-        email_secret=SECRET
-        email_server={email_server}
-        email_port={email_port}'''.\
-                format(
-                    exception=str(error_msg),
-                    email_source=email_source,
-                    email_recipients=email_recipients,
-                    email_username=email_username,
-                    email_server=email_server,
-                    email_port=email_port
-                )
+        except Exception as exe_msg:
             if logger:
-                logger.critical(error_str)
+                logger.critical(
+                    'EXCEPTION unable to send email ' + \
+                    '\r\texception={0} '.format(exe_msg) + \
+                    '\r\temail_source={0} '.format(email_source) + \
+                    '\r\temail_recipients={0} '.format(email_recipients) + \
+                    '\r\temail_username={0} '.format(email_username) + \
+                    '\r\temail_secret=SECRET ' + \
+                    '\r\temail_server={0} '.format(email_server) + \
+                    '\r\temail_port={0} '.format(email_port)
+                )
     else:
         if logger:
             logger.error('unable to send email - missing config information')
@@ -262,10 +255,8 @@ class LoggerLevels:
 
 class LoggerDebugger(object):
     '''container for executing print/debug/log calls'''
-    def __init__(self, debug, logger):
-        self.debug = debug,
+    def __init__(self, logger):
         self.logger = logger
-        self.do_debug = bool(debug)
         self.do_logger = bool(logger)
 
     def get_logger(self):
@@ -274,7 +265,5 @@ class LoggerDebugger(object):
     def message(self, message_str, log_level):
         '''actually do the thing'''
         log_level_enum = LoggerLevels().str_to_level(log_level)
-        if self.do_debug:
-            print(message_str)
         if self.do_logger:
             self.logger.log(log_level_enum, message_str)
