@@ -255,12 +255,37 @@ class LoggerLevels:
 
 class LoggerDebugger(object):
     '''container for executing print/debug/log calls'''
-    def __init__(self, logger):
+    def __init__(self, debug, logger):
         self.logger = logger
         self.do_logger = bool(logger)
 
     def get_logger(self):
         return self.logger
+
+    def debug(self, message_str):
+        '''make it work like logger'''
+        if self.do_logger:
+            self.logger.debug(message_str)
+
+    def info(self, message_str):
+        '''make it work like logger'''
+        if self.do_logger:
+            self.logger.info(message_str)
+
+    def warning(self, message_str):
+        '''make it work like logger'''
+        if self.do_logger:
+            self.logger.warning(message_str)
+
+    def error(self, message_str):
+        '''make it work like logger'''
+        if self.do_logger:
+            self.logger.error(message_str)
+
+    def critical(self, message_str):
+        '''make it work like logger'''
+        if self.do_logger:
+            self.logger.critical(message_str)
 
     def message(self, message_str, log_level):
         '''actually do the thing'''
