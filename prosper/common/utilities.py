@@ -70,7 +70,7 @@ def create_logger(
     log_total = configObject.get('LOGGING', 'log_total')
 
     log_name = log_name + '.log'
-    log_format = '[%(asctime)s;%(levelname)s;%(filename)s;%(lineno)s] %(message)s'
+    log_format = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
     #print(logName + ':' + logLevel)
     if log_level_override:
         log_level = log_level_override
@@ -90,8 +90,10 @@ def create_logger(
 
     if log_level_override == 'DEBUG':
         #print('LOGGER: adding stdout handler')
+        short_format = '[%(levelname)s;%(funcName)s;%(lineno)s] %(message)s'
+        short_formatter = logging.Formatter(short_format)
         stdout = logging.StreamHandler()
-        stdout.setFormatter(formatter)
+        stdout.setFormatter(short_formatter)
         Logger.addHandler(stdout)
     return Logger
 
