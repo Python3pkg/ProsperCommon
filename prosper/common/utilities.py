@@ -90,7 +90,7 @@ def create_logger(
 
     if log_level_override == 'DEBUG':
         #print('LOGGER: adding stdout handler')
-        short_format = '[%(levelname)s;%(funcName)s;%(lineno)s] %(message)s'
+        short_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
         short_formatter = logging.Formatter(short_format)
         stdout = logging.StreamHandler()
         stdout.setFormatter(short_formatter)
