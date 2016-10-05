@@ -25,7 +25,7 @@ def hack_find_packages(include_str):
 
 setup(
     name='ProsperCommon',
-    version='0.0.5',
+    version='0.0.6',
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
