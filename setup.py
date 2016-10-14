@@ -25,7 +25,7 @@ def hack_find_packages(include_str):
 
 setup(
     name='ProsperCommon',
-    version='0.0.6',
+    version='0.1.0',
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
@@ -38,7 +38,8 @@ setup(
     ],
     package_data={
         'prosper':[
-            'common/crest.cfg'
+            'common/crest.cfg',
+            'common/common_config.cfg'
         ]
     },
     install_requires=[
