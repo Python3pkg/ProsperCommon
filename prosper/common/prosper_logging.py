@@ -62,20 +62,22 @@ def create_logger(
         stdout.setFormatter(short_formatter)
         Logger.addHandler(stdout)
 
-    if all(
-        config_obj.has_option('LOGGING', 'discord_webhook'),
-        config_obj.has_option('LOGGING', 'discord_level'),
-        #config_obj.has_option('LOGGING', 'discord_alert_recipient')
-    ):
+    if all([
+            config_obj.has_option('LOGGING', 'discord_webhook'),
+            config_obj.has_option('LOGGING', 'discord_level'),
+            #config_obj.has_option('LOGGING', 'discord_alert_recipient')
+    ]):
         #message_maxlength = DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE
+        #print('LOGGER: adding discord handler')
         discord_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
         alert_recipient = None
         if config_obj.has_option('LOGGING', 'discord_alert_recipient'):
             alert_recipient = config_obj.get('LOGGING', 'discord_alert_recipient')
 
-        discord_obj = DiscordWebhook().webhook(config_obj.get('LOGGING', 'discord_webhook'))
+        discord_obj = DiscordWebhook()
+        discord_obj.webhook(config_obj.get('LOGGING', 'discord_webhook'))
         discord_level = config_obj.get('LOGGING', 'discord_level')
-        do_discord = all(discord_obj, discord_level)
+        do_discord = all([discord_obj.can_query, discord_level])
         if do_discord:
             try:
                 dh = HackyDiscordHandler(
@@ -137,6 +139,7 @@ class DiscordWebhook(object):
 class HackyDiscordHandler(logging.Handler):
     '''hacky in-house discord/REST handler'''
     def __init__(self, webhook_obj, alert_recipient=None):
+        logging.Handler.__init__(self)
         self.webhook_obj = webhook_obj
         self.api_url = self.webhook_obj.webhook_url
         self.alert_recipient = alert_recipient
@@ -150,8 +153,8 @@ class HackyDiscordHandler(logging.Handler):
         if len(log_msg) + self.alert_length > DISCORD_MESSAGE_LIMIT:
             log_msg = log_msg[:(DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE)]
 
-        if self.alert_recipient and record.levelno > logging.ERROR:
-            log_msg = log_msg + str(self.alert_recipient)
+        if self.alert_recipient and record.levelno == logging.CRITICAL:
+            log_msg = log_msg + '\n' + str(self.alert_recipient)
 
         payload = {
             'content':log_msg
@@ -185,5 +188,5 @@ if __name__ == '__main__':
     TEST_LOGGER.debug('prosper.common.prosper_logging TEST --DEBUG--')
     TEST_LOGGER.info('prosper.common.prosper_logging TEST --INFO--')
     TEST_LOGGER.warning('prosper.common.prosper_logging TEST --WARNING--')
-    TEST_LOGGER.error('prosper.common.prosper_logging TEST --DEBUG--')
-    TEST_LOGGER.critical('prosper.common.prosper_logging TEST --DEBUG--')
+    TEST_LOGGER.error('prosper.common.prosper_logging TEST --ERROR--')
+    TEST_LOGGER.critical('prosper.common.prosper_logging TEST --CRITICAL--')
