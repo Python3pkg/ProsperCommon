@@ -42,6 +42,6 @@ setup(
         ]
     },
     install_requires=[
-        #TODO
+        'requests==2.11.1'
     ]
 )
