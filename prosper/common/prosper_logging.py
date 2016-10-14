@@ -1,6 +1,6 @@
 '''prosper_logging.py: extension/standadized logging utilities for prosper'''
 
-from os import path
+from os import path, makedirs
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
@@ -13,6 +13,8 @@ ME = __file__.replace('.py', '')
 CONFIG_ABSPATH = path.join(HERE, 'common_config.cfg')
 
 COMMON_CONFIG = get_config(CONFIG_ABSPATH)
+DISCORD_MESSAGE_LIMIT = 2000
+DISCORD_PAD_SIZE = 100
 
 def create_logger(
         log_name,
@@ -22,16 +24,10 @@ def create_logger(
 ):
     '''creates logging handle for programs'''
     if not config_obj:
-        #build up mini-config off in-script defaults
-        tmpconfig = configparser.ConfigParser()
-        tmpconfig['LOGGING'] = LOGGER_DEFAULTS
-        config_obj = tmpconfig
+        config_obj = COMMON_CONFIG
 
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
-    #logFolder = os.path.join('../', tmpConfig.get('LOGGING', 'logFolder'))
-    #if not os.path.exists(logFolder):
-    #    os.makedirs(logFolder)
+    if not path.exists(log_path):
+        makedirs(log_path)
 
     Logger = logging.getLogger(log_name)
 
@@ -65,6 +61,34 @@ def create_logger(
         stdout = logging.StreamHandler()
         stdout.setFormatter(short_formatter)
         Logger.addHandler(stdout)
+
+    if all(
+        config_obj.has_option('LOGGING', 'discord_webhook'),
+        config_obj.has_option('LOGGING', 'discord_level'),
+        #config_obj.has_option('LOGGING', 'discord_alert_recipient')
+    ):
+        #message_maxlength = DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE
+        discord_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
+        alert_recipient = None
+        if config_obj.has_option('LOGGING', 'discord_alert_recipient'):
+            alert_recipient = config_obj.get('LOGGING', 'discord_alert_recipient')
+
+        discord_obj = DiscordWebhook().webhook(config_obj.get('LOGGING', 'discord_webhook'))
+        discord_level = config_obj.get('LOGGING', 'discord_level')
+        do_discord = all(discord_obj, discord_level)
+        if do_discord:
+            try:
+                dh = HackyDiscordHandler(
+                    discord_obj,
+                    alert_recipient
+                )
+                dh_format = logging.Formatter(discord_format)
+                dh.setFormatter(dh_format)
+                dh.setLevel(discord_level)
+                Logger.addHandler(dh)
+            except Exception as error_msg:
+                print('UNABLE TO ATTATCH DISCORD HANDLER - ' + str(error_msg))
+
     return Logger
 
 class DiscordWebhook(object):
@@ -76,8 +100,11 @@ class DiscordWebhook(object):
         self.api_key = ''
         self.can_query = False
         self.webhook_response = None
+
     def webhook(self, webhook_url):
         '''parse pieces of webhook credentials from url'''
+        if webhook_url:
+            self.can_query = True
         self.webhook_url = webhook_url
         #FIXME vv this is hacky as fuck
         trunc_url = self.webhook_url.replace(self.__base_url, '')
@@ -87,9 +114,12 @@ class DiscordWebhook(object):
 
     def api_keys(self, serverid, api_key):
         '''with a id/api pair, assemble the webhook_url'''
+        if serverid and api_key:
+            self.can_query = True
         self.serverid = serverid
         self.api_key = api_key
         self.webhook_url = self.__base_url + self.serverid + '/' + self.api_key
+
 
     def get_webhook_info(self):
         '''fetch api profile from discord servers'''
@@ -98,7 +128,62 @@ class DiscordWebhook(object):
 
         raise NotImplementedError('requests call to discord server for API info: TODO')
 
+    def __bool__(self):
+        return self.can_query
+
+    def __str__(self):
+        return self.webhook_url
+
 class HackyDiscordHandler(logging.Handler):
     '''hacky in-house discord/REST handler'''
-    def __init__(self, webhook_obj):
-        pass
+    def __init__(self, webhook_obj, alert_recipient=None):
+        self.webhook_obj = webhook_obj
+        self.api_url = self.webhook_obj.webhook_url
+        self.alert_recipient = alert_recipient
+        self.alert_length = 0
+        if self.alert_recipient:
+            self.alert_length = len(self.alert_recipient)
+
+    def emit(self, record):
+        '''logging logic goes here'''
+        log_msg = self.format(record)
+        if len(log_msg) + self.alert_length > DISCORD_MESSAGE_LIMIT:
+            log_msg = log_msg[:(DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE)]
+
+        if self.alert_recipient and record.levelno > logging.ERROR:
+            log_msg = log_msg + str(self.alert_recipient)
+
+        payload = {
+            'content':log_msg
+        }
+
+        header = {
+            'Content-Type':'application/json'
+        }
+
+        try:
+            request = requests.post(
+                self.api_url,
+                headers=header,
+                json=payload
+            )
+        except Exception as error_msg:
+            print(
+                'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' + \
+                '\r\texception={0}'.format(error_msg) + \
+                '\r\tmessage={0}'.format(log_msg)
+            )
+
+if __name__ == '__main__':
+    TEST_LOGGER = create_logger(
+        'common_logger_debug',
+        '.',
+        COMMON_CONFIG,
+        'DEBUG'
+    )
+
+    TEST_LOGGER.debug('prosper.common.prosper_logging TEST --DEBUG--')
+    TEST_LOGGER.info('prosper.common.prosper_logging TEST --INFO--')
+    TEST_LOGGER.warning('prosper.common.prosper_logging TEST --WARNING--')
+    TEST_LOGGER.error('prosper.common.prosper_logging TEST --DEBUG--')
+    TEST_LOGGER.critical('prosper.common.prosper_logging TEST --DEBUG--')
