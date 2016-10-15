@@ -4,17 +4,19 @@ import datetime
 import os
 import json
 import requests
-from prosper.common import utilities
+from prosper.common import prosper_utilities as utilities
+from prosper.common.prosper_logging import create_logger
+from prosper.common.prosper_config import get_config
 HERE = os.path.abspath(os.path.dirname(__file__))
 CONFIG_FILEPATH = os.path.join(HERE, 'crest.cfg')
-config = utilities.get_config(CONFIG_FILEPATH)
+config = get_config(CONFIG_FILEPATH)
 LOG_PATH = config.get('GLOBAL', 'log_path')
 if not LOG_PATH: #blank line
     LOG_PATH = os.path.join(HERE, 'logs')
     if not os.path.exists(LOG_PATH):
         os.makedirs(LOG_PATH)
 
-crestLogger = utilities.create_logger(
+crestLogger = create_logger(
     'crest_utility',
     LOG_PATH,
     None,
