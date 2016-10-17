@@ -3,7 +3,10 @@
 import datetime
 import os
 import json
+import logging
+
 import requests
+
 from prosper.common import prosper_utilities as utilities
 from prosper.common.prosper_logging import create_logger
 from prosper.common.prosper_config import get_config
@@ -15,13 +18,16 @@ if not LOG_PATH: #blank line
     LOG_PATH = os.path.join(HERE, 'logs')
     if not os.path.exists(LOG_PATH):
         os.makedirs(LOG_PATH)
+DEFAULT_LOGGER = logging.getLogger('NULL')
+DEFAULT_LOGGER.addHandler(logging.NullHandler())
+crestLogger = DEFAULT_LOGGER
 
-crestLogger = create_logger(
-    'crest_utility',
-    LOG_PATH,
-    None,
-    config.get('GLOBAL', 'log_level')
-)
+#crestLogger = create_logger(
+#    'crest_utility',
+#    LOG_PATH,
+#    None,
+#    config.get('GLOBAL', 'log_level')
+#)
 
 #### GLOBALS ####
 CACHE_ABSPATH = os.path.join(HERE, config.get('CACHING', 'cache_path'))
