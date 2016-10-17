@@ -13,11 +13,11 @@ from prosper.common.prosper_config import get_config
 HERE = os.path.abspath(os.path.dirname(__file__))
 CONFIG_FILEPATH = os.path.join(HERE, 'crest.cfg')
 config = get_config(CONFIG_FILEPATH)
-LOG_PATH = config.get('GLOBAL', 'log_path')
-if not LOG_PATH: #blank line
-    LOG_PATH = os.path.join(HERE, 'logs')
-    if not os.path.exists(LOG_PATH):
-        os.makedirs(LOG_PATH)
+#LOG_PATH = config.get('GLOBAL', 'log_path')
+#if not LOG_PATH: #blank line
+#    LOG_PATH = os.path.join(HERE, 'logs')
+#    if not os.path.exists(LOG_PATH):
+#        os.makedirs(LOG_PATH)
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
 crestLogger = DEFAULT_LOGGER
