@@ -6,7 +6,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 import requests
 
-from prosper_config import get_config
+from prosper.common.prosper_config import get_config
 
 HERE = path.abspath(path.dirname(__file__))
 ME = __file__.replace('.py', '')
