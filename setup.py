@@ -25,7 +25,11 @@ def hack_find_packages(include_str):
 
 setup(
     name='ProsperCommon',
-    version='0.2.0',
+    author='John Purcell',
+    author_email='prospermarketshow@gmail.com',
+    url='https://github.com/EVEprosper/ProsperCommon',
+    download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v0.2.1',
+    version='0.2.1',
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
