@@ -5,7 +5,9 @@ import pytest
 
 import prosper.common.prosper_logging as prosper_logging
 from prosper.common.prosper_config import get_config
+
 HERE = path.abspath(path.dirname(__file__))
+ME = __file__.replace(HERE, 'test')
 LOCAL_CONFIG = path.join(HERE, 'common_config.cfg') #use /test config
 if not path.isfile(LOCAL_CONFIG):   #else use /prosper/common config
     DEFAULT_PATH = path.join(path.dirname(HERE), 'prosper', 'common')
@@ -35,6 +37,7 @@ def test_logger(config_override=TEST_CONFIG):
         ('test_logging', 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
 
+#TODO: add pytest.mark to skip
 def test_webhook(config_override=TEST_CONFIG):
     '''push hello world message to discord for testing'''
     try:
@@ -51,7 +54,7 @@ def test_webhook(config_override=TEST_CONFIG):
     webhook_obj.webhook(webhook)
     test_handler = prosper_logging.HackyDiscordHandler(webhook_obj)
 
-    test_handler.test('hello world')
+    test_handler.test(str(ME) + ' -- hello world')
 
 if __name__ == '__main__':
     pass

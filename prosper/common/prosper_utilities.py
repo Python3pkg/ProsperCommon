@@ -18,11 +18,7 @@ def compare_config_files(config_filepath):
     tracked_config = get_config(config_filepath, True)
     local_config = get_config(config_filepath)
 
-    unique_keys = {}
-    #unique_keys['local'] = []
-    #unique_keys['tracked'] = []
-
-    unique_sections = []
+    unique_values = {}
 
     if not path.isfile(get_local_config_filepath(config_filepath)):
         pytest.skip('no local .cfg found, skipping')
@@ -32,8 +28,7 @@ def compare_config_files(config_filepath):
         tracked_config,
         'local'
     )
-
-    tracked_unique_keys, tracked_unique_sections = find_unique_keys(
+    tracked_unique_sections, tracked_unique_keys = find_unique_keys(
         tracked_config,
         local_config,
         'tracked'
@@ -43,16 +38,16 @@ def compare_config_files(config_filepath):
             local_unique_keys,
             tracked_unique_keys
     ]):
-        unique_keys['local'] = local_unique_keys
-        unique_keys['tracked'] = tracked_unique_keys
-
+        unique_values['unique_keys'] = {}
+        unique_values['unique_keys']['local'] = local_unique_keys
+        unique_values['unique_keys']['tracked'] = tracked_unique_keys
     if any([
             local_unique_sections,
             tracked_unique_sections
     ]):
-        unique_sections = [local_unique_sections, tracked_unique_sections]
+        unique_values['unique_sections'] = [local_unique_sections, tracked_unique_sections]
 
-    return unique_sections, unique_keys
+    return unique_values
 
 def find_unique_keys(base_config, comp_config, base_name):
     '''walks through BASE and looks for keys missing in COMP
@@ -61,14 +56,16 @@ def find_unique_keys(base_config, comp_config, base_name):
     unique_sections = []
 
     for section in base_config:
+        if str(section) == 'DEFAULT':
+            continue #.cfg has DEFAULT key, we do not use
         if not comp_config.has_section(section):
             unique_label = base_name + '.' + str(section)
             unique_sections.append(unique_label)
             continue
 
-        for value in base_config[section]:
-            if not comp_config[section].has_option:
-                unique_label = str(section) + '.' + str(value)
+        for key in base_config[section]:
+            if not comp_config.has_option(section, key):
+                unique_label = str(section) + '.' + str(key)
                 unique_keys.append(unique_label)
                 continue
             #TODO: compare values?
