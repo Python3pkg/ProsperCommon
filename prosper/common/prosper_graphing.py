@@ -1,6 +1,7 @@
 import logging
 
 import matplotlib
+import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 import pandas as pd
