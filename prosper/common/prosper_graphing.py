@@ -1,14 +1,14 @@
 import logging
 
 import matplotlib
+matplotlib.use('Agg')
+
 import matplotlib.pyplot as plt
 from matplotlib.dates import DateFormatter, WeekdayLocator, DayLocator, MONDAY
 from matplotlib.finance import candlestick_ohlc
 from matplotlib.dates import date2num
 import pandas as pd
 import numpy as np
-
-matplotlib.use('Agg')
 
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
@@ -102,3 +102,16 @@ def pandas_candlestick_ohlc(#dat, stick = "day", otherseries = None):
 
     plt.show()
 
+def load_testdata(csv_file='', logger=DEFAULT_LOGGER):
+    '''for testing: load data from csv, return pandas dataframe'''
+    pass
+
+if __name__ == '__main__':
+    from prosper.common.prosper_logging import create_logger
+
+    LOCAL_LOGGER = create_logger(
+        'debug_prosper_graphing',
+        '.',
+        None,
+        'DEBUG'
+    )
