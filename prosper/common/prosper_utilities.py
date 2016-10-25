@@ -1,21 +1,78 @@
 '''utilities.py: worker functions for CREST calls'''
 
-import os
+from os import path
 import logging
-from configparser import ExtendedInterpolation
 from socket import gethostname, gethostbyname
 import smtplib
 from datetime import datetime
 
 import pytest
 
+from prosper.common.prosper_config import get_config, get_local_config_filepath
+
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
 def compare_config_files(config_filepath):
     '''validate that keys in tracked .cfg match keys in _local.cfg'''
-    pass
+    tracked_config = get_config(config_filepath, True)
+    local_config = get_config(config_filepath)
 
+    unique_keys = {}
+    #unique_keys['local'] = []
+    #unique_keys['tracked'] = []
+
+    unique_sections = []
+
+    if not path.isfile(get_local_config_filepath(config_filepath)):
+        pytest.skip('no local .cfg found, skipping')
+
+    local_unique_sections, local_unique_keys = find_unique_keys(
+        local_config,
+        tracked_config,
+        'local'
+    )
+
+    tracked_unique_keys, tracked_unique_sections = find_unique_keys(
+        tracked_config,
+        local_config,
+        'tracked'
+    )
+
+    if any([
+            local_unique_keys,
+            tracked_unique_keys
+    ]):
+        unique_keys['local'] = local_unique_keys
+        unique_keys['tracked'] = tracked_unique_keys
+
+    if any([
+            local_unique_sections,
+            tracked_unique_sections
+    ]):
+        unique_sections = [local_unique_sections, tracked_unique_sections]
+
+    return unique_sections, unique_keys
+
+def find_unique_keys(base_config, comp_config, base_name):
+    '''walks through BASE and looks for keys missing in COMP
+        returns: unique_sections:list, unique_keys:list'''
+    unique_keys = []
+    unique_sections = []
+
+    for section in base_config:
+        if not comp_config.has_section(section):
+            unique_label = base_name + '.' + str(section)
+            unique_sections.append(unique_label)
+            continue
+
+        for value in base_config[section]:
+            if not comp_config[section].has_option:
+                unique_label = str(section) + '.' + str(value)
+                unique_keys.append(unique_label)
+                continue
+            #TODO: compare values?
+    return unique_sections, unique_keys
 
 def send_email(
         mail_subject,

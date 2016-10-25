@@ -18,15 +18,7 @@ def get_config(
         inline_comment_prefixes=('#')
     )
 
-    local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
-
-    real_config_filepath = ''
-    if path.isfile(local_config_filepath):
-        #if _local.cfg version exists, use it instead
-        real_config_filepath = local_config_filepath
-    else:
-        #else use tracked default
-        real_config_filepath = config_filepath
+    real_config_filepath = get_local_config_filepath(config_filepath)
 
     if local_override:  #force lookup tracked config
         real_config_filepath = config_filepath
@@ -34,3 +26,17 @@ def get_config(
     with open(real_config_filepath, 'r') as filehandle:
         config.read_file(filehandle)
     return config
+
+def get_local_config_filepath(config_filepath, force_local=False):
+    '''logic to find filepath of _local.cfg'''
+    local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
+
+    real_config_filepath = ''
+    if path.isfile(local_config_filepath) or force_local:
+        #if _local.cfg version exists, use it instead
+        real_config_filepath = local_config_filepath
+    else:
+        #else use tracked default
+        real_config_filepath = config_filepath
+
+    return real_config_filepath
