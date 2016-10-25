@@ -1,6 +1,6 @@
 from os import path, makedirs
 from testfixtures import LogCapture
-
+import configparser
 import pytest
 
 import prosper.common.prosper_logging as prosper_logging
@@ -39,13 +39,13 @@ def test_webhook(config_override=TEST_CONFIG):
     '''push hello world message to discord for testing'''
     try:
         webhook = config_override.get('LOGGING', 'discord_webhook')
-    except KeyError as error_msg:
-        raise 'discord_webhook key not found in config'
+    except configparser.NoOptionError as error_msg:
+        pytest.skip('discord_webhook key not found in config')
     except Exception as error_msg:
         raise error_msg
 
-    if not webhook:
-        raise 'discord_webhook is blank'
+    if not webhook: #FIXME: commenting doesn't work in config file?
+        pytest.skip('discord_webhook is blank')
 
     webhook_obj = prosper_logging.DiscordWebhook()
     webhook_obj.webhook(webhook)
