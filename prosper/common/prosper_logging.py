@@ -178,7 +178,7 @@ class HackyDiscordHandler(logging.Handler):
             print(
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' + \
                 '\r\texception={0}'.format(error_msg) + \
-                '\r\tmessage={0}'.format(log_msg)
+                '\r\tmessage={0}'.format(message)
             )
     def test(self, message):
         '''hook for testing webhook logic'''
