@@ -156,8 +156,12 @@ class HackyDiscordHandler(logging.Handler):
         if self.alert_recipient and record.levelno == logging.CRITICAL:
             log_msg = log_msg + '\n' + str(self.alert_recipient)
 
+        self.send_msg_to_webhook(log_msg)
+
+    def send_msg_to_webhook(self, message):
+        '''requests framework for sending log message to webhook'''
         payload = {
-            'content':log_msg
+            'content':message
         }
 
         header = {
@@ -176,7 +180,12 @@ class HackyDiscordHandler(logging.Handler):
                 '\r\texception={0}'.format(error_msg) + \
                 '\r\tmessage={0}'.format(log_msg)
             )
-
+    def test(self, message):
+        '''hook for testing webhook logic'''
+        try:
+            self.send_msg_to_webhook(message)
+        except Exception as error_msg:
+            raise error_msg
 class LoggerLevels:
     '''enums for logger'''
     #FIXME vvv import actual logger enum?

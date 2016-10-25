@@ -35,5 +35,23 @@ def test_logger(config_override=TEST_CONFIG):
         ('test_logging', 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
 
+def test_webhook(config_override=TEST_CONFIG):
+    '''push hello world message to discord for testing'''
+    try:
+        webhook = config_override.get('LOGGING', 'discord_webhook')
+    except KeyError as error_msg:
+        raise 'discord_webhook key not found in config'
+    except Exception as error_msg:
+        raise error_msg
+
+    if not webhook:
+        raise 'discord_webhook is blank'
+
+    webhook_obj = prosper_logging.DiscordWebhook()
+    webhook_obj.webhook(webhook)
+    test_handler = prosper_logging.HackyDiscordHandler(webhook_obj)
+
+    test_handler.test('hello world')
+
 if __name__ == '__main__':
     pass
