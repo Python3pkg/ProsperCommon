@@ -1,9 +1,34 @@
 '''wheel setup for Prosper common utilities'''
 
 from os import path, listdir
+from sys import executable
 from setuptools import setup, find_packages
+import distutils.cmd
+import subprocess
 
 HERE = path.abspath(path.dirname(__file__))
+
+class PyTest(distutils.cmd.Command):
+    '''override `test` with pytest call
+    (stolen from https://github.com/tomerfiliba/plumbum/blob/master/setup.py)'''
+    #user_options = [('cov', 'c', 'Produce coverage'),
+    #                ('report', 'r', 'Produce html coverage report')]
+
+    def initialize_options(self):
+        #self.cov = None
+        #self.report = None
+        pass
+    def finalize_options(self):
+        pass
+    def run(self):
+        #import sys, subprocess
+        proc = [executable, '-m', 'pytest', 'tests/']
+        #if self.cov or self.report:
+        #    proc += ['--cov','--cov-config=.coveragerc']
+        #if self.report:
+        #    proc += ['--cov-report=html']
+        errno = subprocess.call(proc)
+        raise SystemExit(errno)
 
 def include_all_subfiles(path_included):
     '''for data_files {path_included}/*'''
@@ -38,7 +63,7 @@ setup(
     packages=hack_find_packages('prosper'),
     data_files=[
         #TODO: license + README
-        #TODO
+        ('test', include_all_subfiles('test'))
     ],
     package_data={
         'prosper':[
@@ -46,6 +71,12 @@ setup(
         ]
     },
     install_requires=[
-        'requests==2.11.1'
-    ]
+        'requests==2.11.1',
+        'pytest==3.0.3',
+        'testfixtures==4.12.0',
+        #TODO: pandas/numpy/matplotlib requirements
+    ],
+    cmdclass={
+        'test':PyTest
+    }
 )
