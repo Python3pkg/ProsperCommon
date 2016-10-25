@@ -177,6 +177,33 @@ class HackyDiscordHandler(logging.Handler):
                 '\r\tmessage={0}'.format(log_msg)
             )
 
+class LoggerLevels:
+    '''enums for logger'''
+    #FIXME vvv import actual logger enum?
+    #https://docs.python.org/3/library/logging.html#logging-levels
+    CRITICAL = 50
+    ERROR = 40
+    WARNING = 30
+    INFO = 20
+    DEBUG = 10
+    NOTSET = 0
+
+    def str_to_level(self, log_level):
+        '''converts str to int enum'''
+        log_level = log_level.upper()
+        if  log_level == 'CRITICAL':
+            return self.CRITICAL
+        elif log_level == 'ERROR':
+            return self.ERROR
+        elif log_level == 'WARNING':
+            return self.WARNING
+        elif log_level == 'INFO':
+            return self.INFO
+        elif log_level == 'DEBUG':
+            return self.DEBUG
+        else:
+            return self.NOTSET
+
 if __name__ == '__main__':
     TEST_LOGGER = create_logger(
         'common_logger_debug',

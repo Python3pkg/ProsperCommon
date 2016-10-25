@@ -2,106 +2,19 @@
 
 import os
 import logging
-from logging.handlers import TimedRotatingFileHandler, SMTPHandler
-import configparser
 from configparser import ExtendedInterpolation
 from socket import gethostname, gethostbyname
 import smtplib
 from datetime import datetime
 
-#CONFIG_FILES = ['prosperAPI_local.cfg','prosperAPI.cfg'] #TODO: change to .cfg?
-
-LOGGER_DEFAULTS = {
-    'log_level': 'DEBUG',
-    'log_freq': 'd',
-    'log_total': '60',
-    'log_email_level': 'CRITICAL'
-}
-
-def get_config(
-        config_filepath
-):
-    '''returns config object for parsing global values'''
-    config = configparser.ConfigParser(
-        interpolation=ExtendedInterpolation(),
-        allow_no_value=True,
-        delimiters=('='),
-        inline_comment_prefixes=('#')
-    )
-
-    local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
-
-    real_config_filepath = ''
-    if os.path.isfile(local_config_filepath):
-        #if _local.cfg version exists, use it instead
-        real_config_filepath = local_config_filepath
-    else:
-        #else use tracked default
-        real_config_filepath = config_filepath
-
-    with open(real_config_filepath, 'r') as filehandle:
-        config.read_file(filehandle)
-    return config
-    #TODO: add cfg error handling just in case
-
-def create_logger(
-        log_name,
-        log_path,
-        configObject = None,
-        log_level_override = ''
-):
-    '''creates logging handle for programs'''
-    if not configObject:
-        #build up mini-config off in-script defaults
-        tmpconfig = configparser.ConfigParser()
-        tmpconfig['LOGGING'] = LOGGER_DEFAULTS
-        configObject = tmpconfig
-
-    if not os.path.exists(log_path):
-        os.makedirs(log_path)
-    #logFolder = os.path.join('../', tmpConfig.get('LOGGING', 'logFolder'))
-    #if not os.path.exists(logFolder):
-    #    os.makedirs(logFolder)
-
-    Logger = logging.getLogger(log_name)
-
-    log_level = configObject.get('LOGGING', 'log_level')
-    log_freq  = configObject.get('LOGGING', 'log_freq')
-    log_total = configObject.get('LOGGING', 'log_total')
-
-    log_name = log_name + '.log'
-    log_format = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
-    #print(logName + ':' + logLevel)
-    if log_level_override:
-        log_level = log_level_override
-
-    log_full_path = os.path.join(log_path, log_name)
-
-    Logger.setLevel(log_level)
-    generalHandler = TimedRotatingFileHandler(
-        log_full_path,
-        when=log_freq,
-        interval=1,
-        backupCount=log_total
-    )
-    formatter = logging.Formatter(log_format)
-    generalHandler.setFormatter(formatter)
-    Logger.addHandler(generalHandler)
-
-    if log_level_override == 'DEBUG':
-        #print('LOGGER: adding stdout handler')
-        short_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
-        short_formatter = logging.Formatter(short_format)
-        stdout = logging.StreamHandler()
-        stdout.setFormatter(short_formatter)
-        Logger.addHandler(stdout)
-    return Logger
+DEFAULT_LOGGER = logging.getLogger('NULL')
+DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
 def send_email(
         mail_subject,
         error_msg,
         config_object,
-        logger=None
+        logger=DEFAULT_LOGGER
 ):
     '''in case of catastrophic failure, raise the alarm'''
     email_source     = config_object.get('LOGGING', 'email_source')
@@ -153,29 +66,26 @@ def send_email(
                 payload
             )
             mailserver.close()
-            if logger:
-                logger.info(
-                    'Sent Email from {source} to {recipients} about {mail_subject}'.\
-                    format(
-                        source=email_source,
-                        recipients=email_recipients,
-                        mail_subject=mail_subject
-                    ))
+            logger.info(
+                'Sent Email from {source} to {recipients} about {mail_subject}'.\
+                format(
+                    source=email_source,
+                    recipients=email_recipients,
+                    mail_subject=mail_subject
+                ))
         except Exception as exe_msg:
-            if logger:
-                logger.critical(
-                    'EXCEPTION unable to send email ' + \
-                    '\r\texception={0} '.format(exe_msg) + \
-                    '\r\temail_source={0} '.format(email_source) + \
-                    '\r\temail_recipients={0} '.format(email_recipients) + \
-                    '\r\temail_username={0} '.format(email_username) + \
-                    '\r\temail_secret=SECRET ' + \
-                    '\r\temail_server={0} '.format(email_server) + \
-                    '\r\temail_port={0} '.format(email_port)
-                )
+            logger.critical(
+                'EXCEPTION unable to send email ' + \
+                '\r\texception={0} '.format(exe_msg) + \
+                '\r\temail_source={0} '.format(email_source) + \
+                '\r\temail_recipients={0} '.format(email_recipients) + \
+                '\r\temail_username={0} '.format(email_username) + \
+                '\r\temail_secret=SECRET ' + \
+                '\r\temail_server={0} '.format(email_server) + \
+                '\r\temail_port={0} '.format(email_port)
+            )
     else:
-        if logger:
-            logger.error('unable to send email - missing config information')
+        logger.error('unable to send email - missing config information')
 
 #    bool_doEmail = False
 #    try:
