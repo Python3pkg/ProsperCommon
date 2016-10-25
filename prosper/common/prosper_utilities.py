@@ -7,8 +7,15 @@ from socket import gethostname, gethostbyname
 import smtplib
 from datetime import datetime
 
+import pytest
+
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
+
+def compare_config_files(config_filepath):
+    '''validate that keys in tracked .cfg match keys in _local.cfg'''
+    pass
+
 
 def send_email(
         mail_subject,
@@ -87,42 +94,6 @@ def send_email(
     else:
         logger.error('unable to send email - missing config information')
 
-#    bool_doEmail = False
-#    try:
-#        emailSource     = configObject.get('LOGGING', 'emailSource')
-#        emailRecipients = configObject.get('LOGGING', 'emailRecipients')
-#        emailUsername   = configObject.get('LOGGING', 'emailUsername')
-#        emailFromaddr   = configObject.get('LOGGING', 'emailFromaddr')
-#        emailSecret     = configObject.get('LOGGING', 'emailSecret')
-#        emailServer     = configObject.get('LOGGING', 'emailServer')
-#        emailPort       = configObject.get('LOGGING', 'emailPort')
-#        emailTitle      = logName + ' CRITICAL ERROR'
-#
-#        bool_doEmail = (
-#            emailSource     and
-#            emailRecipients and
-#            emailUsername   and
-#            emailFromaddr   and
-#            emailSecret     and
-#            emailServer     and
-#            emailPort
-#        )
-#    except (KeyError, configparser.NoOptionError) as error:
-#        #email keys not included, don't set up SMTPHandler
-#        bool_doEmail = False
-#
-#    if bool_doEmail:
-#        emailHandler = SMTPHandler(
-#            mailhost    = emailServer + ':' + emailPort,
-#            fromaddr    = emailFromaddr,
-#            toaddrs     = str(emailRecipients).split(','),
-#            subject     = emailTitle,
-#            credentials = (emailUsername, emailSecret)
-#        )
-#        emailHandler.setFormatter(formatter)
-#        Logger.addHandler(emailHandler)
-
-
 def email_body_builder(error_msg, help_msg):
     '''Builds email message for easier reading with SMTPHandler'''
     #todo: format emails better
@@ -135,30 +106,3 @@ def quandlfy_json(jsonObj):
 def quandlfy_xml(xmlObj):
     '''turn object from XML into QUANDL-style XML'''
     pass
-
-class LoggerLevels:
-    '''enums for logger'''
-    #FIXME vvv import actual logger enum?
-    #https://docs.python.org/3/library/logging.html#logging-levels
-    CRITICAL = 50
-    ERROR = 40
-    WARNING = 30
-    INFO = 20
-    DEBUG = 10
-    NOTSET = 0
-
-    def str_to_level(self, log_level):
-        '''converts str to int enum'''
-        log_level = log_level.upper()
-        if  log_level == 'CRITICAL':
-            return self.CRITICAL
-        elif log_level == 'ERROR':
-            return self.ERROR
-        elif log_level == 'WARNING':
-            return self.WARNING
-        elif log_level == 'INFO':
-            return self.INFO
-        elif log_level == 'DEBUG':
-            return self.DEBUG
-        else:
-            return self.NOTSET

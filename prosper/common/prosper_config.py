@@ -7,7 +7,8 @@ from configparser import ExtendedInterpolation
 HERE = path.abspath(path.dirname(__file__))
 
 def get_config(
-        config_filepath
+        config_filepath,
+        local_override=False
 ):
     '''returns config object for parsing global values'''
     config = configparser.ConfigParser(
@@ -25,6 +26,9 @@ def get_config(
         real_config_filepath = local_config_filepath
     else:
         #else use tracked default
+        real_config_filepath = config_filepath
+
+    if local_override:  #force lookup tracked config
         real_config_filepath = config_filepath
 
     with open(real_config_filepath, 'r') as filehandle:
