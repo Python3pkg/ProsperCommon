@@ -5,6 +5,7 @@ import logging
 from socket import gethostname, gethostbyname
 import smtplib
 from datetime import datetime
+import time
 
 import pytest
 
@@ -70,6 +71,23 @@ def find_unique_keys(base_config, comp_config, base_name):
                 continue
             #TODO: compare values?
     return unique_sections, unique_keys
+
+class Timeit(object):
+    '''decorator for timing funcs
+    http://www.artima.com/weblogs/viewpost.jsp?thread=240845'''
+    def __init__(self, logger=DEFAULT_LOGGER):
+        self.logger=logger
+
+    def __call__(self, func):
+        def wrapped(*args, **kw):
+            '''stolen from: http://www.samuelbosch.com/2012/02/timing-functions-in-python.html'''
+            ts = time.time()
+            result = func(*args, **kw)
+            te = time.time()
+
+            self.logger.debug('-- %r %2.2f sec' % (func.__name__, te-ts))
+            return result
+        return wrapped
 
 def send_email(
         mail_subject,
