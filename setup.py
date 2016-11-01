@@ -67,7 +67,8 @@ setup(
     ],
     package_data={
         'prosper':[
-            'common/common_config.cfg'
+            'common/common_config.cfg',
+            'crest/crest_config.cfg'
         ]
     },
     install_requires=[
