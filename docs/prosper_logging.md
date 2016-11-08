@@ -83,6 +83,7 @@ Live alerting is a useful tool.  ProsperCommon is loaded with a REST handler for
 # Logging Configuration
 
 ProsperLogger is designed with the following priority order for finding configurations:
+
 1. arguments in `configure_handler` calls
 2. `__init__` called `configuration_object` loaded by the script that needs the logger
 3. prosper.common/common_config.cfg as global defaults
