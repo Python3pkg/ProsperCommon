@@ -72,6 +72,20 @@ def find_unique_keys(base_config, comp_config, base_name):
             #TODO: compare values?
     return unique_sections, unique_keys
 
+def parse_options(config_obj, key):
+    '''test/parse logging options from config
+    RETURNS: dict() of everything at key
+    '''
+    if not config_obj.has_section(key):
+        raise KeyError
+
+    logging_options = {}
+    for option in config_obj[key]:
+        option_str = str(option)
+        logging_options[option_str] = config_obj.get(key, option_str)
+
+    return logging_options
+
 class Timeit(object):
     '''decorator for timing funcs
     http://www.artima.com/weblogs/viewpost.jsp?thread=240845'''

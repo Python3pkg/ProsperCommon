@@ -110,7 +110,6 @@ def build_sde_map(
         config = config_override
 
 CREST_BASEURL = CONFIG.get('CREST', 'base_url')
-#PAGE_URI = CONFIG.get('CREST', )
 class CrestRequest(object):
     def __init__(self, endpoint_name, logger=DEFAULT_LOGGER):
         self.base_url = CREST_BASEURL
@@ -185,9 +184,9 @@ class CrestRequest(object):
 
         return self.all_items
 
-
 RETRY_TIME = CONFIG.get('GLOBAL', 'retry_time')
 RETRY_COUNT = CONFIG.get('GLOBAL', 'retry_count')
+PAGE_PARAM = CONFIG.get('CREST', 'page_param')
 @retry(
     wait_exponential_multiplier=1000,
     wait_exponential_max=RETRY_TIME,
@@ -205,7 +204,7 @@ def fetch_crest_page(
     }
     param = {}
     if page:
-        param = {'page':page}
+        param = {PAGE_PARAM:page}
     logger.info('-- Fetching ' + crest_url)
     try:
         request = requests.get(

@@ -1,12 +1,14 @@
 '''prosper_logging.py: extension/standadized logging utilities for prosper'''
 
-from os import path, makedirs
+from os import path, makedirs, access, W_OK#, R_OK
 import logging
 from logging.handlers import TimedRotatingFileHandler
+import warnings
 
 import requests
 
 from prosper.common.prosper_config import get_config
+import prosper.common.prosper_utilities as p_utils
 
 HERE = path.abspath(path.dirname(__file__))
 ME = __file__.replace('.py', '')
@@ -16,6 +18,153 @@ COMMON_CONFIG = get_config(CONFIG_ABSPATH)
 DISCORD_MESSAGE_LIMIT = 2000
 DISCORD_PAD_SIZE = 100
 
+#DEFAULT_LOGGER = logging.getLogger('NULL')
+#DEFAULT_LOGGER.addHandler(logging.NullHandler())
+class ProsperLogger(object):
+    '''container for building a logger for prosper tools'''
+    _debug_mode = False
+    def __init__(
+            self,
+            log_name,
+            log_path,
+            config_obj=COMMON_CONFIG,
+            debug_mode=_debug_mode
+    ):
+        self.logger = logging.getLogger(log_name)
+        self.log_options = p_utils.parse_options(config_obj, 'LOGGING')
+        self._debug_mode = debug_mode
+        self.log_name = log_name + '.log'
+        self.log_path = test_logpath(log_path, debug_mode)
+
+        self.log_handlers = []
+        self.configure_default_logger(debug_mode=debug_mode)
+
+    def get_logger(self):
+        '''yield logging object for script to work with'''
+        return self.logger
+
+    def __str__(self):
+        '''for debug purposes, list attached log handlers'''
+        return ','.join(self.log_handlers)
+
+    def configure_default_logger(
+            self,
+            log_freq=None,
+            log_total=None,
+            log_level=None,
+            log_format=ReportingFormats.DEFAULT,
+            debug_mode=_debug_mode
+    ):
+        '''build default logger object and handlers'''
+        try:
+            if not log_freq:
+                log_freq = self.log_options['log_freq']
+            if not log_total:
+                log_total = self.log_options['log_toal']
+            if not log_level:
+                log_level = self.log_options['log_level']
+        except KeyError as error_msg:
+            raise error_msg
+
+        log_abspath = path.join(self.log_path, self.log_name)
+        general_handler = TimedRotatingFileHandler(
+            log_abspath,
+            when=log_freq,
+            interval=1,
+            backupCount=log_total #FIXME: defaults
+        )
+
+        formatter = logging.Formatter(log_format)
+        general_handler.setFormatter(formatter)
+
+        self.logger.setLevel(log_level)
+        self.logger.addHandler(general_handler)
+
+        self.log_handlers.append('default @ ' + str(log_level))
+
+    def configure_debug_logger(
+            self,
+            log_level='DEBUG',
+            log_format=ReportingFormats.STDOUT,
+            debug_mode=_debug_mode
+    ):
+        '''attach debug logging info for debug'''
+        formatter = logging.Formatter(log_format)
+        debug_handler = logging.StreamHandler()
+        debug_handler.setFormatter(formatter)
+        debug_handler.setLevel(log_level)
+        self.logger.addHandler(debug_handler)
+        self.log_handlers.append('debug @ ' + str(log_level))
+
+    def configure_discord_handler(
+            self,
+            log_level='ERROR',
+            log_format=ReportingFormats.PRETTY_PRINT,
+            discord_webhook=None,
+            discord_recipient=None,
+            debug_mode=_debug_mode
+    ):
+        '''attach discord options'''
+
+        ## Make sure we can set discord handlers ##
+        if not discord_webhook:
+            try:
+                discord_webhook = self.log_options['discord_webhook']
+            except KeyError:
+                return None #no options to configure discord handler
+            finally:
+                if not discord_webhook:
+                    return None #no options to configure discord handler
+
+        ## Actually build discord logging handler ##
+        discord_obj = DiscordWebhook()
+        discord_obj.webhook(discord_webhook)
+        if discord_obj.can_query:
+            try:
+                discord_handler = HackyDiscordHandler(
+                    discord_obj,
+                    discord_recipient
+                )
+                discord_format = logging.Formatter(log_format)
+                discord_handler.setFormatter(discord_format)
+                discord_handler.setLevel(log_level)
+                self.logger.addHandler(discord_handler)
+            except Exception as error_msg:
+                raise error_msg
+        self.log_handlers.append('discord @ ' + str(log_level))
+
+class ReportingFormats:
+    '''a handy enum of reporting formats for every occasion'''
+    DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
+    PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
+    STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
+
+def test_logpath(log_path, debug_mode=False):
+    '''test if logger has access to given path, and set up directories
+    RETURNS: valid log_path, after setting up pathing
+        '.' or log_path
+    '''
+    if debug_mode:
+        return '.' #if debug, do not deploy to production paths
+
+    ## Try to create path to log ##
+    if not path.exists(log_path):
+        try:
+            makedirs(log_path, exist_ok=True)
+        except PermissionError as err_permission:
+            #UNABLE TO CREATE LOG PATH
+            return '.'
+        except Exception as err_msg:
+            raise err_msg
+
+    ## Make sure logger can write to path ##
+    if not access(log_path, W_OK):
+        #UNABLE TO WRITE TO LOG PATH
+        return '.'
+        #TODO: windows behavior requires abspath to existing file
+
+    return log_path
+
 def create_logger(
         log_name,
         log_path,
@@ -23,6 +172,10 @@ def create_logger(
         log_level_override = ''
 ):
     '''creates logging handle for programs'''
+    warnings.warn(
+        'create_logger replaced with ProsperLogger object',
+        DeprecationWarning
+    )
     if not config_obj:
         config_obj = COMMON_CONFIG
 
