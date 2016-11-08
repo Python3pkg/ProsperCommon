@@ -60,7 +60,7 @@ class ProsperLogger(object):
             if not log_freq:
                 log_freq = self.log_options['log_freq']
             if not log_total:
-                log_total = self.log_options['log_toal']
+                log_total = self.log_options['log_total']
             if not log_level:
                 log_level = self.log_options['log_level']
         except KeyError as error_msg:
@@ -112,11 +112,20 @@ class ProsperLogger(object):
             try:
                 discord_webhook = self.log_options['discord_webhook']
             except KeyError:
-                return None #no options to configure discord handler
+                warnings.warn(
+                    'Lacking discord_webhook defintion, unable to attach webhook',
+                    ResourceWarning
+                )
+                return None
+                #raise KeyError('Lacking discord_webhook definition')
             finally:
                 if not discord_webhook:
-                    return None #no options to configure discord handler
-
+                    #raise KeyError('Lacking discord_webhook definition')
+                    warnings.warn(
+                        'Lacking discord_webhook defintion, unable to attach webhook',
+                        ResourceWarning
+                    )
+                    return None
         ## Actually build discord logging handler ##
         discord_obj = DiscordWebhook()
         discord_obj.webhook(discord_webhook)
@@ -154,6 +163,14 @@ def test_logpath(log_path, debug_mode=False):
             makedirs(log_path, exist_ok=True)
         except PermissionError as err_permission:
             #UNABLE TO CREATE LOG PATH
+            warning_msg = \
+                'Unable to create logging path.  Defaulting to \'.\'' + \
+                'log_path={0}'.format(log_path) + \
+                'exception={0}'.format(err_permission)
+            warnings.warn(
+                warning_msg,
+                ResourceWarning
+            )
             return '.'
         except Exception as err_msg:
             raise err_msg
@@ -161,6 +178,14 @@ def test_logpath(log_path, debug_mode=False):
     ## Make sure logger can write to path ##
     if not access(log_path, W_OK):
         #UNABLE TO WRITE TO LOG PATH
+        warning_msg = \
+            'Lacking write permissions to path.  Defaulting to \'.\'' + \
+            'log_path={0}'.format(log_path) + \
+            'exception={0}'.format(err_permission)
+        warnings.warn(
+            warning_msg,
+            ResourceWarning
+        )
         return '.'
         #TODO: windows behavior requires abspath to existing file
 
