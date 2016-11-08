@@ -20,6 +20,13 @@ DISCORD_PAD_SIZE = 100
 
 #DEFAULT_LOGGER = logging.getLogger('NULL')
 #DEFAULT_LOGGER.addHandler(logging.NullHandler())
+
+class ReportingFormats:
+    '''a handy enum of reporting formats for every occasion'''
+    DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
+    PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
+    STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
+
 class ProsperLogger(object):
     '''container for building a logger for prosper tools'''
     _debug_mode = False
@@ -143,11 +150,6 @@ class ProsperLogger(object):
                 raise error_msg
         self.log_handlers.append('discord @ ' + str(log_level))
 
-class ReportingFormats:
-    '''a handy enum of reporting formats for every occasion'''
-    DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
-    PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
-    STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
 
 def test_logpath(log_path, debug_mode=False):
     '''test if logger has access to given path, and set up directories
