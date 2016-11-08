@@ -101,3 +101,19 @@ ProsperLogger is designed with the following priority order for finding configur
     discord_alert_recipient = <@236681427817725954>
 ```
 This section is valid in any loaded configuration object loaded by prosper.common.prosper_config `get_config()`.  Any commented/blank keys are loaded as `None` but should have error handling in place.
+
+# ReportingFormats
+
+[Python Log Formats](https://docs.python.org/3.5/library/logging.html#logrecord-attributes) are obnoxious to write, and leaving them in config-levels could lead to version upgrading issues later.
+
+Instead we include some helpful baked-in formats for easy setup:
+
+* `ReportingFormats.DEFAULT` (for file logging)
+    `[2016-10-14 16:11:38,805;DEBUG;prosper_logging.py;<module>;185] prosper.common.prosper_logging TEST --DEBUG--`
+* `ReportingFormats.PRETTY_PRINT` (for Discord logging)
+    ```
+    [DEBUG:prosper_logging.py--<module>:185]
+    prosper.common.prosper_logging TEST --DEBUG--
+    ```
+# `ReportingFormats.STDOUT` (for std-out/console logging)
+    `[DEBUG:prosper_logging.py--<module>:185] prosper.common.prosper_logging TEST --DEBUG--`
