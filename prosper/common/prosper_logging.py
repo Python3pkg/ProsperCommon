@@ -52,7 +52,7 @@ class ProsperLogger(object):
             log_freq=None,
             log_total=None,
             log_level=None,
-            log_format=ReportingFormats.DEFAULT,
+            log_format=ReportingFormats().DEFAULT,
             debug_mode=_debug_mode
     ):
         '''build default logger object and handlers'''
@@ -86,7 +86,7 @@ class ProsperLogger(object):
     def configure_debug_logger(
             self,
             log_level='DEBUG',
-            log_format=ReportingFormats.STDOUT,
+            log_format=ReportingFormats().STDOUT,
             debug_mode=_debug_mode
     ):
         '''attach debug logging info for debug'''
@@ -100,7 +100,7 @@ class ProsperLogger(object):
     def configure_discord_logger(
             self,
             log_level='ERROR',
-            log_format=ReportingFormats.PRETTY_PRINT,
+            log_format=ReportingFormats().PRETTY_PRINT,
             discord_webhook=None,
             discord_recipient=None,
             debug_mode=_debug_mode
