@@ -97,7 +97,7 @@ class ProsperLogger(object):
         self.logger.addHandler(debug_handler)
         self.log_handlers.append('debug @ ' + str(log_level))
 
-    def configure_discord_handler(
+    def configure_discord_logger(
             self,
             log_level='ERROR',
             log_format=ReportingFormats.PRETTY_PRINT,
