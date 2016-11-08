@@ -33,7 +33,7 @@ class ProsperLogger(object):
         self.logger = logging.getLogger(log_name)
         self.log_options = p_utils.parse_options(config_obj, 'LOGGING')
         self._debug_mode = debug_mode
-        self.log_name = log_name + '.log'
+        self.log_name = log_name
         self.log_path = test_logpath(log_path, debug_mode)
 
         self.log_handlers = []
@@ -66,7 +66,8 @@ class ProsperLogger(object):
         except KeyError as error_msg:
             raise error_msg
 
-        log_abspath = path.join(self.log_path, self.log_name)
+        log_filename = self.log_name + '.log'
+        log_abspath = path.join(self.log_path, log_filename)
         general_handler = TimedRotatingFileHandler(
             log_abspath,
             when=log_freq,
