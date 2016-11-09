@@ -43,6 +43,7 @@ class ProsperLogger(object):
         self.log_name = log_name
         self.log_path = test_logpath(log_path, debug_mode)
 
+        self.log_info = []
         self.log_handlers = []
         self.configure_default_logger(debug_mode=debug_mode)
 
@@ -52,7 +53,7 @@ class ProsperLogger(object):
 
     def __str__(self):
         '''for debug purposes, list attached log handlers'''
-        return ','.join(self.log_handlers)
+        return ','.join(self.log_info)
 
     def configure_default_logger(
             self,
@@ -88,7 +89,8 @@ class ProsperLogger(object):
         self.logger.setLevel(log_level)
         self.logger.addHandler(general_handler)
 
-        self.log_handlers.append('default @ ' + str(log_level))
+        self.log_info.append('default @ ' + str(log_level))
+        self.log_handlers.append(general_handler)
 
     def configure_debug_logger(
             self,
@@ -102,7 +104,8 @@ class ProsperLogger(object):
         debug_handler.setFormatter(formatter)
         debug_handler.setLevel(log_level)
         self.logger.addHandler(debug_handler)
-        self.log_handlers.append('debug @ ' + str(log_level))
+        self.log_info.append('debug @ ' + str(log_level))
+        self.log_handlers.append(debug_handler)
 
     def configure_discord_logger(
             self,
@@ -148,8 +151,8 @@ class ProsperLogger(object):
                 self.logger.addHandler(discord_handler)
             except Exception as error_msg:
                 raise error_msg
-        self.log_handlers.append('discord @ ' + str(log_level))
-
+            self.log_info.append('discord @ ' + str(log_level))
+            self.log_handlers.append(discord_handler)
 
 def test_logpath(log_path, debug_mode=False):
     '''test if logger has access to given path, and set up directories
