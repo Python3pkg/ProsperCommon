@@ -104,6 +104,7 @@ class ProsperLogger(object):
         debug_handler.setFormatter(formatter)
         debug_handler.setLevel(log_level)
         self.logger.addHandler(debug_handler)
+
         self.log_info.append('debug @ ' + str(log_level))
         self.log_handlers.append(debug_handler)
 
@@ -151,6 +152,7 @@ class ProsperLogger(object):
                 self.logger.addHandler(discord_handler)
             except Exception as error_msg:
                 raise error_msg
+
             self.log_info.append('discord @ ' + str(log_level))
             self.log_handlers.append(discord_handler)
 

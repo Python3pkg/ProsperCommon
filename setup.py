@@ -1,52 +1,54 @@
 '''wheel setup for Prosper common utilities'''
 
 from os import path, listdir
-from sys import executable
 from setuptools import setup, find_packages
-import distutils.cmd
-import subprocess
+from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
 
-class PyTest(distutils.cmd.Command):
-    '''override `test` with pytest call
-    (stolen from https://github.com/tomerfiliba/plumbum/blob/master/setup.py)'''
-    #user_options = [('cov', 'c', 'Produce coverage'),
-    #                ('report', 'r', 'Produce html coverage report')]
-
-    def initialize_options(self):
-        #self.cov = None
-        #self.report = None
-        pass
-    def finalize_options(self):
-        pass
-    def run(self):
-        #import sys, subprocess
-        proc = [executable, '-m', 'pytest', 'tests/']
-        #if self.cov or self.report:
-        #    proc += ['--cov','--cov-config=.coveragerc']
-        #if self.report:
-        #    proc += ['--cov-report=html']
-        errno = subprocess.call(proc)
-        raise SystemExit(errno)
-
-def include_all_subfiles(path_included):
-    '''for data_files {path_included}/*'''
-    local_path = path.join(HERE, path_included)
-    file_list = []
-
-    for file in listdir(local_path):
-        file_list.append(path_included + '/' + file)
-
-    return file_list
-
 def hack_find_packages(include_str):
-    '''setuptools.find_packages({include_str}) does not work.  Adjust pathing'''
+    '''append include_str into find_packages path'''
+    # Some issue with find_packages() and directory design?
     new_list = [include_str]
     for element in find_packages(include_str):
         new_list.append(include_str + '.' + element)
 
     return new_list
+
+def include_all_subfiles(*args):
+    '''makes up for /* include'''
+    file_list = []
+    for path_included in args:
+        local_path = path.join(HERE, path_included)
+
+        for file in listdir(local_path):
+            file_abspath = path.join(local_path, file)
+            if path.isdir(file_abspath):    #do not include sub folders
+                continue
+            file_list.append(path_included + '/' + file)
+
+    return file_list
+
+class PyTest(TestCommand):
+    '''PyTest cmdclass hook for test-at-buildtime functionality
+    http://doc.pytest.org/en/latest/goodpractices.html#manual-integration'''
+    user_options = [('pytest-args=', 'a', "Arguments to pass to pytest")]
+
+    def initialize_options(self):
+        TestCommand.initialize_options(self)
+        self.pytest_args = ['test']    #load defaults here
+
+    def run_tests(self):
+        import shlex
+        #import here, cause outside the eggs aren't loaded
+        import pytest
+        pytest_commands = []
+        try:    #read commandline
+            pytest_commands = shlex.split(self.pytest_args)
+        except AttributeError:  #use defaults
+            pytest_commands = self.pytest_args
+        errno = pytest.main(pytest_commands)
+        exit(errno)
 
 setup(
     name='ProsperCommon',

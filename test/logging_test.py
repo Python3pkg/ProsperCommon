@@ -1,4 +1,4 @@
-from os import path, makedirs
+from os import path, makedirs, listdir, remove
 from testfixtures import LogCapture
 import configparser
 import pytest
@@ -8,34 +8,56 @@ from prosper.common.prosper_config import get_config
 
 HERE = path.abspath(path.dirname(__file__))
 ME = __file__.replace(HERE, 'test')
-LOCAL_CONFIG = path.join(HERE, 'common_config.cfg') #use /test config
-if not path.isfile(LOCAL_CONFIG):   #else use /prosper/common config
-    DEFAULT_PATH = path.join(path.dirname(HERE), 'prosper', 'common')
-    LOCAL_CONFIG = path.join(DEFAULT_PATH, 'common_config.cfg')
+LOCAL_CONFIG = path.join(HERE, 'test_config.cfg') #use /test config
+
 TEST_CONFIG = get_config(LOCAL_CONFIG)
 
-def test_logger(config_override=TEST_CONFIG):
-    '''excercise logger utility'''
-    logger = prosper_logging.create_logger(
-        'test_logging',
-        '.',
-        config_override,
-        'DEBUG'
-    )
-    with LogCapture('test_logging') as l:
-        logger.debug('prosper.common.prosper_logging TEST --DEBUG--')
-        logger.info('prosper.common.prosper_logging TEST --INFO--')
-        logger.warning('prosper.common.prosper_logging TEST --WARNING--')
-        logger.error('prosper.common.prosper_logging TEST --ERROR--')
-        logger.critical('prosper.common.prosper_logging TEST --CRITICAL--')
+def helper_log_messages(
+        logger,
+        log_capture_override=None,
+        config=TEST_CONFIG
+):
+    '''messages each logger tester should execute with their log handler'''
+    with LogCapture(log_capture_override) as log_tracker:
+        logger.debug('prosper.common.prosper_logging TEST -- DEBUG --')
+        logger.info('prosper.common.prosper_logging TEST -- INFO --')
+        logger.warning('prosper.common.prosper_logging -- WARNING --')
+        logger.error('prosper.common.prosper_logging TEST -- ERROR --')
+        logger.critical('prosper.common.prosper_logging TEST -- CRITICAL --')
+        #logger.notify('prosper.common.prosper_logging TEST -- NOTIFY --')
+        #logger.alert('prosper.common.prosper_logging TEST -- ALERT --')
 
-    l.check(
+    return log_tracker
+
+def test_cleanup_log_directory(config=TEST_CONFIG):
+    '''step0: make sure directory is set up and ready to accept logs'''
+    log_path = path.abspath(config['Logging']['log_path'])
+
+    log_list = listdir(log_path)
+    for log_file in log_list:
+        if '.log' in log_file:  #mac adds .DS_Store and gets cranky about deleting
+            log_abspath = path.join(log_path, log_file)
+            remove(log_abspath)
+
+def test_default_logger(config=TEST_CONFIG):
+    '''validate default logger'''
+    test_logname = 'default_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        TEST_CONFIG['LOGGING']['log_path'],
+        config
+    )
+    logger = log_builder.get_logger()
+    log_capture = helper_log_messages(logger)
+    log_capture.check(
         ('test_logging', 'DEBUG',    'prosper.common.prosper_logging TEST --DEBUG--'),
         ('test_logging', 'INFO',     'prosper.common.prosper_logging TEST --INFO--'),
         ('test_logging', 'WARNING',  'prosper.common.prosper_logging TEST --WARNING--'),
         ('test_logging', 'ERROR',    'prosper.common.prosper_logging TEST --ERROR--'),
         ('test_logging', 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
+
+    test_cleanup_log_directory()
 
 #TODO: add pytest.mark to skip
 def test_webhook(config_override=TEST_CONFIG):
