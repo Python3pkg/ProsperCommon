@@ -1,7 +1,10 @@
 from os import path, makedirs, listdir, remove
-from testfixtures import LogCapture
 import configparser
+import logging
+from datetime import datetime
+
 import pytest
+from testfixtures import LogCapture
 
 import prosper.common.prosper_logging as prosper_logging
 from prosper.common.prosper_config import get_config
@@ -38,6 +41,74 @@ def test_cleanup_log_directory(config=TEST_CONFIG):
         if '.log' in log_file:  #mac adds .DS_Store and gets cranky about deleting
             log_abspath = path.join(log_path, log_file)
             remove(log_abspath)
+
+def test_rotating_file_handle(config=TEST_CONFIG):
+    '''validate that rotating filehandle object executes correctly'''
+    test_logname = 'timedrotator'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        config['LOGGING']['log_path'],
+        config_object=config
+    )
+    test_logger = log_builder.get_logger() #use default behavior
+    test_handles = log_builder.log_handlers
+    timed_handle = None
+    for handle in test_handles:
+        if isinstance(handle, logging.handlers.TimedRotatingFileHandler):
+            timed_handle = handle
+            break
+    assert \
+        (not timed_handle is None), \
+        'No TimedRotatingFileHandler found in logging object'
+
+    before_capture = helper_log_messages(test_logger) #run logging
+    timed_handle.doRollover() #force rollover
+    after_capture = helper_log_messages(test_logger) #run logging
+
+    logging_abspath = config['Logging']['log_path']
+    file_list = listdir(logging_abspath)
+
+    simple_file_list = []
+    for logfile in file_list:
+        if test_logname in logfile:
+            simple_file_list.append(logfile)
+
+    today = datetime.today().strftime('%Y-%m-%d')
+
+    find_count = 0
+    expected_vanilla_logname = str(test_logname + '.log')
+    assert \
+        expected_vanilla_logname in simple_file_list, \
+        'Unable to find basic logname: {0} in list {1}'.\
+            format(
+                expected_vanilla_logname,
+                ','.join(simple_file_list)
+            )
+    find_count += 1
+
+    expected_rotator_logname = str(test_logname + '.log.' + today)
+    assert \
+        expected_rotator_logname in simple_file_list, \
+        'Unable to find rotated logname: {0} in list {1}'.\
+            format(
+                expected_rotator_logname,
+                ','.join(simple_file_list)
+            )
+    find_count += 1
+
+    assert find_count == len(simple_file_list)
+
+    #TODO: validate before_capture/after_capture
+
+    test_cleanup_log_directory()
+
+def test_logpath_builder_positive(config=TEST_CONFIG):
+    '''make sure `test_logpath` has expected behavior -- affirmative case'''
+    pytest.skip(__name__ + ' not configured yet')
+
+def test_logpath_builder_negative(config=TEST_CONFIG):
+    '''make sure `test_logpath` has expected behavior -- fail case'''
+    pytest.skip(__name__ + ' not configured yet')
 
 def test_default_logger(config=TEST_CONFIG):
     '''validate default logger'''
