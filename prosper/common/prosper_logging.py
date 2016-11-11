@@ -105,7 +105,8 @@ class ProsperLogger(object):
         debug_handler.setLevel(log_level)
 
         self.logger.addHandler(debug_handler)
-        self.logger.setLevel(log_level)     #override log_level minimum
+        if not self.logger.isEnabledFor(log_level):
+            self.logger.setLevel(log_level)     #override log_level minimum
 
         self.log_info.append('debug @ ' + str(log_level))
         self.log_handlers.append(debug_handler)
