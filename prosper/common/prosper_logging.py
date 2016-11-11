@@ -236,7 +236,7 @@ def create_logger(
         log_full_path,
         when=log_freq,
         interval=1,
-        backupCount=log_total
+        backupCount=int(log_total)
     )
     formatter = logging.Formatter(log_format)
     generalHandler.setFormatter(formatter)
