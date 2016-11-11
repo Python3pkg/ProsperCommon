@@ -160,13 +160,14 @@ class ProsperLogger(object):
             debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
 
         """
+        log_level_value = logging.getLevelName(log_level)
         formatter = logging.Formatter(log_format)
         debug_handler = logging.StreamHandler()
         debug_handler.setFormatter(formatter)
         debug_handler.setLevel(log_level)
 
         self.logger.addHandler(debug_handler)
-        if not self.logger.isEnabledFor(log_level):
+        if not self.logger.isEnabledFor(log_level_value):
             self.logger.setLevel(log_level) #override log_level min if less than current min
 
         self.log_info.append('debug @ ' + str(log_level))
