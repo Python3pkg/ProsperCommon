@@ -22,19 +22,20 @@ def helper_log_messages(
 ):
     '''messages each logger tester should execute with their log handler'''
     with LogCapture(log_capture_override) as log_tracker:
-        logger.debug('prosper.common.prosper_logging TEST -- DEBUG --')
-        logger.info('prosper.common.prosper_logging TEST -- INFO --')
-        logger.warning('prosper.common.prosper_logging -- WARNING --')
-        logger.error('prosper.common.prosper_logging TEST -- ERROR --')
-        logger.critical('prosper.common.prosper_logging TEST -- CRITICAL --')
-        #logger.notify('prosper.common.prosper_logging TEST -- NOTIFY --')
-        #logger.alert('prosper.common.prosper_logging TEST -- ALERT --')
+        logger.debug(   'prosper.common.prosper_logging TEST --DEBUG--')
+        logger.info(    'prosper.common.prosper_logging TEST --INFO--')
+        logger.warning( 'prosper.common.prosper_logging TEST --WARNING--')
+        logger.error(   'prosper.common.prosper_logging TEST --ERROR--')
+        logger.critical('prosper.common.prosper_logging TEST --CRITICAL--')
+        #logger.notify('prosper.common.prosper_logging TEST --NOTIFY --')
+        #logger.alert('prosper.common.prosper_logging TEST --ALERT --')
 
     return log_tracker
 
+## TEST0: must clean up log directory for tests to be best ##
 def test_cleanup_log_directory(config=TEST_CONFIG):
     '''step0: make sure directory is set up and ready to accept logs'''
-    log_path = path.abspath(config['Logging']['log_path'])
+    log_path = path.abspath(config['LOGGING']['log_path'])
 
     log_list = listdir(log_path)
     for log_file in log_list:
@@ -48,7 +49,7 @@ def test_rotating_file_handle(config=TEST_CONFIG):
     log_builder = prosper_logging.ProsperLogger(
         test_logname,
         config['LOGGING']['log_path'],
-        config_object=config
+        config_obj=config
     )
     test_logger = log_builder.get_logger() #use default behavior
     test_handles = log_builder.log_handlers
@@ -102,34 +103,6 @@ def test_rotating_file_handle(config=TEST_CONFIG):
 
     test_cleanup_log_directory()
 
-def test_logpath_builder_positive(config=TEST_CONFIG):
-    '''make sure `test_logpath` has expected behavior -- affirmative case'''
-    pytest.skip(__name__ + ' not configured yet')
-
-def test_logpath_builder_negative(config=TEST_CONFIG):
-    '''make sure `test_logpath` has expected behavior -- fail case'''
-    pytest.skip(__name__ + ' not configured yet')
-
-def test_default_logger(config=TEST_CONFIG):
-    '''validate default logger'''
-    test_logname = 'default_logger'
-    log_builder = prosper_logging.ProsperLogger(
-        test_logname,
-        TEST_CONFIG['LOGGING']['log_path'],
-        config
-    )
-    logger = log_builder.get_logger()
-    log_capture = helper_log_messages(logger)
-    log_capture.check(
-        ('test_logging', 'DEBUG',    'prosper.common.prosper_logging TEST --DEBUG--'),
-        ('test_logging', 'INFO',     'prosper.common.prosper_logging TEST --INFO--'),
-        ('test_logging', 'WARNING',  'prosper.common.prosper_logging TEST --WARNING--'),
-        ('test_logging', 'ERROR',    'prosper.common.prosper_logging TEST --ERROR--'),
-        ('test_logging', 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
-    )
-
-    test_cleanup_log_directory()
-
 #TODO: add pytest.mark to skip
 def test_webhook(config_override=TEST_CONFIG):
     '''push hello world message to discord for testing'''
@@ -149,5 +122,89 @@ def test_webhook(config_override=TEST_CONFIG):
 
     test_handler.test(str(ME) + ' -- hello world')
 
+def test_logpath_builder_positive(config=TEST_CONFIG):
+    '''make sure `test_logpath` has expected behavior -- affirmative case'''
+    pytest.skip(__name__ + ' not configured yet')
+
+def test_logpath_builder_negative(config=TEST_CONFIG):
+    '''make sure `test_logpath` has expected behavior -- fail case'''
+    pytest.skip(__name__ + ' not configured yet')
+
+def test_default_logger(config=TEST_CONFIG):
+    '''validate default logger'''
+    test_logname = 'default_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        TEST_CONFIG['LOGGING']['log_path'],
+        config_obj=config
+    )
+    logger = log_builder.get_logger()
+    log_capture = helper_log_messages(logger)
+    log_capture.check(
+        (test_logname, 'INFO',     'prosper.common.prosper_logging TEST --INFO--'),
+        (test_logname, 'WARNING',  'prosper.common.prosper_logging TEST --WARNING--'),
+        (test_logname, 'ERROR',    'prosper.common.prosper_logging TEST --ERROR--'),
+        (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
+    )
+
+    test_cleanup_log_directory()
+
+def test_debug_logger(config=TEST_CONFIG):
+    '''validate debug logger'''
+    test_logname = 'debug_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        config['LOGGING']['log_path'],
+        config_obj=config
+    )
+    log_builder.configure_debug_logger()
+    test_logger = log_builder.get_logger() #use default behavior
+
+    log_capture = helper_log_messages(test_logger)
+    log_capture.check(
+        (test_logname, 'DEBUG',    'prosper.common.prosper_logging TEST --DEBUG--'),
+        (test_logname, 'INFO',     'prosper.common.prosper_logging TEST --INFO--'),
+        (test_logname, 'WARNING',  'prosper.common.prosper_logging TEST --WARNING--'),
+        (test_logname, 'ERROR',    'prosper.common.prosper_logging TEST --ERROR--'),
+        (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
+    )
+
+    test_cleanup_log_directory()
+
+def test_discord_logger(config=TEST_CONFIG):
+    '''validate discord/webhook logger'''
+    test_logname = 'discord_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        config['LOGGING']['log_path'],
+        config_obj=config
+    )
+    log_builder.configure_discord_logger()
+    test_logger = log_builder.get_logger() #use default behavior
+
+    log_capture = helper_log_messages(test_logger)
+
+    discord_helper = prosper_logging.DiscordWebhook()
+    discord_helper.webhook(config['LOGGING']['discord_webhook'])
+
+    request_logname = config['TEST']['request_logname']
+    request_new_connection = config['TEST']['request_new_connection']
+    request_POST_endpoint = config['TEST']['request_POST_endpoint'].\
+        format(
+            serverid=discord_helper.serverid,
+            api_key=discord_helper.api_key
+        )
+
+    log_capture.check(
+        (test_logname, 'INFO', 'prosper.common.prosper_logging TEST --INFO--'),
+        (test_logname, 'WARNING', 'prosper.common.prosper_logging TEST --WARNING--'),
+        (request_logname, 'INFO', request_new_connection),
+        (request_logname, 'DEBUG', request_POST_endpoint),
+        (test_logname, 'ERROR', 'prosper.common.prosper_logging TEST --ERROR--'),
+        (request_logname, 'INFO', request_new_connection),
+        (request_logname, 'DEBUG', request_POST_endpoint),
+        (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
+    )
+
 if __name__ == '__main__':
-    pass
+    test_debug_logger()

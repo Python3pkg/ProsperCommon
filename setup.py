@@ -75,9 +75,11 @@ setup(
     },
     install_requires=[
         'requests==2.11.1',
-        'pytest==3.0.3',
-        'testfixtures==4.12.0',
         #TODO: pandas/numpy/matplotlib requirements
+    ],
+    tests_require=[
+        'pytest==3.0.3',
+        'testfixtures==4.12.0'
     ],
     cmdclass={
         'test':PyTest
