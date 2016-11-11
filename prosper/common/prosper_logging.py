@@ -22,13 +22,45 @@ DISCORD_PAD_SIZE = 100
 #DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
 class ReportingFormats:
-    '''a handy enum of reporting formats for every occasion'''
+    """Enum for storing handy log formats"""
     DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
     PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
     STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
 
+    def str_to_format(self, format_name):
+        """parse a string to enum.  For loading from config
+
+        Args:
+            format_name (str): name of an enum format
+
+        Returns:
+            str: ReportingFormats enum for requested level
+
+        """
+        format_name = format_name.upper()
+        if   format_name == 'DEFAULT':
+            return self.DEFAULT
+        elif format_name == 'PRETTY_PRINT':
+            return self.PRETTY_PRINT
+        elif format_name == 'STDOUT':
+            return self.STDOUT
+        else:
+            return self.DEFAULT
+
 class ProsperLogger(object):
-    '''container for building a logger for prosper tools'''
+    """One logger to rule them all.  Build the right logger for your script in a few easy steps
+
+    Attributes:
+        logger (logging.Logger): current built logger (use get_logger() to fetch)
+        log_name (str): the name of the log/log_object
+        log_path (str): path for logfile.  abspath > relpath
+        log_info (:obj:`list` of :obj:`str`):  list of 'handler_name @ log_level' for debug
+        log_handlers (:obj:`list` of :obj:`logging.handlers`): collection of all handlers attached (for testing)
+
+    Todo:
+        * add args/local/global config priority management
+
+    """
     _debug_mode = False
     def __init__(
             self,
@@ -37,6 +69,15 @@ class ProsperLogger(object):
             config_obj=COMMON_CONFIG,
             debug_mode=_debug_mode
     ):
+        """ProsperLogger initialization
+
+        Attributes:
+            log_name (str): the name of the log/log_object
+            log_path (str): path for logfile.  abspath > relpath
+            config_obj (:obj:`configparser.ConfigParser`, optional): config object for loading default behavior
+            debug_mode (bool): debug/verbose modes inside object (UNIMPLEMENTED)
+
+        """
         self.logger = logging.getLogger(log_name)
         self.log_options = p_utils.parse_options(config_obj, 'LOGGING')
         self._debug_mode = debug_mode
@@ -45,14 +86,15 @@ class ProsperLogger(object):
 
         self.log_info = []
         self.log_handlers = []
+
         self.configure_default_logger(debug_mode=debug_mode)
 
     def get_logger(self):
-        '''yield logging object for script to work with'''
+        """return the logger for the user"""
         return self.logger
 
     def __str__(self):
-        '''for debug purposes, list attached log handlers'''
+        """return list of 'handler_name @ log_level' for debug"""
         return ','.join(self.log_info)
 
     def configure_default_logger(
@@ -63,7 +105,16 @@ class ProsperLogger(object):
             log_format=ReportingFormats().DEFAULT,
             debug_mode=_debug_mode
     ):
-        '''build default logger object and handlers'''
+        """default logger that every Prosper script should use!!
+
+        Args:
+            log_freq (str): TimedRotatingFileHandle_str -- https://docs.python.org/3/library/logging.handlers.html#timedrotatingfilehandler
+            log_total (int): how many log_freq periods between log rotations
+            log_level (str): minimum desired log level https://docs.python.org/3/library/logging.html#logging-levels
+            log_format (str): format for logging messages https://docs.python.org/3/library/logging.html#logrecord-attributes
+            debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
+
+        """
         try:
             if not log_freq:
                 log_freq = self.log_options['log_freq']
@@ -98,7 +149,17 @@ class ProsperLogger(object):
             log_format=ReportingFormats().STDOUT,
             debug_mode=_debug_mode
     ):
-        '''attach debug logging info for debug'''
+        """debug logger for stdout messages.  Replacement for print()
+
+        Note:
+            Will try to overwrite minimum log level to enable requested log_level
+
+        Args:
+            log_level (str): desired log level for handle https://docs.python.org/3/library/logging.html#logging-levels
+            log_format (str): format for logging messages https://docs.python.org/3/library/logging.html#logrecord-attributes
+            debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
+
+        """
         formatter = logging.Formatter(log_format)
         debug_handler = logging.StreamHandler()
         debug_handler.setFormatter(formatter)
@@ -106,21 +167,33 @@ class ProsperLogger(object):
 
         self.logger.addHandler(debug_handler)
         if not self.logger.isEnabledFor(log_level):
-            self.logger.setLevel(log_level)     #override log_level minimum
+            self.logger.setLevel(log_level) #override log_level min if less than current min
 
         self.log_info.append('debug @ ' + str(log_level))
         self.log_handlers.append(debug_handler)
 
     def configure_discord_logger(
             self,
-            log_level='ERROR',
-            log_format=ReportingFormats().PRETTY_PRINT,
             discord_webhook=None,
             discord_recipient=None,
+            log_level='ERROR',
+            log_format=ReportingFormats().PRETTY_PRINT,
             debug_mode=_debug_mode
     ):
-        '''attach discord options'''
+        """logger for sending messages to Discord.  Easy way to alert humans of issues
 
+        Note:
+            Will try to overwrite minimum log level to enable requested log_level
+            Will warn and not attach hipchat logger if missing webhook key
+            Learn more about webhooks: https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks
+        Args:
+            discord_webhook (str): hipchat room webhook (full URL)
+            discord_recipient (`str`:<@int>, optional): user/group to notify
+            log_level (str): desired log level for handle https://docs.python.org/3/library/logging.html#logging-levels
+            log_format (str): format for logging messages https://docs.python.org/3/library/logging.html#logrecord-attributes
+            debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
+
+        """
         ## Make sure we can set discord handlers ##
         if not discord_webhook:
             try:
@@ -131,15 +204,14 @@ class ProsperLogger(object):
                     ResourceWarning
                 )
                 return None
-                #raise KeyError('Lacking discord_webhook definition')
             finally:
                 if not discord_webhook:
-                    #raise KeyError('Lacking discord_webhook definition')
                     warnings.warn(
                         'Lacking discord_webhook defintion, unable to attach webhook',
                         ResourceWarning
                     )
                     return None
+
         ## Actually build discord logging handler ##
         discord_obj = DiscordWebhook()
         discord_obj.webhook(discord_webhook)
@@ -158,12 +230,27 @@ class ProsperLogger(object):
 
             self.log_info.append('discord @ ' + str(log_level))
             self.log_handlers.append(discord_handler)
+        else:
+            warnings.warn('Unable to execute webhook', ResourceWarning)
 
 def test_logpath(log_path, debug_mode=False):
-    '''test if logger has access to given path, and set up directories
-    RETURNS: valid log_path, after setting up pathing
-        '.' or log_path
-    '''
+    """Tests if logger has access to given path and sets up directories
+
+    Note:
+        Should always yield a valid path.  May default to script directory
+        Will throw warnings.ResourceWarning if permissions do not allow file write at path
+
+    Args:
+        log_path (str): path to desired logfile.  Abspath > relpath
+        debug_mode (bool): way to make debug easier by forcing path to local
+
+    Returns:
+        str: path to log
+
+        if path exists or can be created, will return log_path
+        else returns '.' as "local path only" response
+
+    """
     if debug_mode:
         return '.' #if debug, do not deploy to production paths
 
@@ -173,10 +260,11 @@ def test_logpath(log_path, debug_mode=False):
             makedirs(log_path, exist_ok=True)
         except PermissionError as err_permission:
             #UNABLE TO CREATE LOG PATH
-            warning_msg = \
-                'Unable to create logging path.  Defaulting to \'.\'' + \
-                'log_path={0}'.format(log_path) + \
+            warning_msg = (
+                'Unable to create logging path.  Defaulting to \'.\'' +
+                'log_path={0}'.format(log_path) +
                 'exception={0}'.format(err_permission)
+            )
             warnings.warn(
                 warning_msg,
                 ResourceWarning
@@ -188,10 +276,11 @@ def test_logpath(log_path, debug_mode=False):
     ## Make sure logger can write to path ##
     if not access(log_path, W_OK):
         #UNABLE TO WRITE TO LOG PATH
-        warning_msg = \
-            'Lacking write permissions to path.  Defaulting to \'.\'' + \
-            'log_path={0}'.format(log_path) + \
+        warning_msg = (
+            'Lacking write permissions to path.  Defaulting to \'.\'' +
+            'log_path={0}'.format(log_path) +
             'exception={0}'.format(err_permission)
+        )
         warnings.warn(
             warning_msg,
             ResourceWarning
@@ -207,7 +296,7 @@ def create_logger(
         config_obj = None,
         log_level_override = ''
 ):
-    '''creates logging handle for programs'''
+    """DEPRECATED: classic v1 logger.  Obsolete by v0.3.0"""
     warnings.warn(
         'create_logger replaced with ProsperLogger object',
         DeprecationWarning
@@ -283,9 +372,17 @@ def create_logger(
     return Logger
 
 class DiscordWebhook(object):
-    '''parser for webhooks for easier api calling'''
+    """Helper object for parsing info and testing discord webhook credentials
+
+    Attributes:
+        webhook_url (str): address of webhook endpoint
+        serverid (int): Discord 'guild' webhook is attached to
+        api_key (`str`:uuid): unique ID for webhook
+
+    """
     __base_url = 'https://discordapp.com/api/webhooks/'
     def __init__(self):
+        """DiscordWebhook initialization"""
         self.webhook_url = ''
         self.serverid = 0
         self.api_key = ''
@@ -293,7 +390,12 @@ class DiscordWebhook(object):
         self.webhook_response = None
 
     def webhook(self, webhook_url):
-        '''parse pieces of webhook credentials from url'''
+        """Load object with webhook_url
+
+        Args:
+            webhook_url (str): full webhook url given by Discord 'create webhook' func
+
+        """
         if webhook_url:
             self.can_query = True
         self.webhook_url = webhook_url
@@ -304,7 +406,13 @@ class DiscordWebhook(object):
         self.api_key = id_list[1]
 
     def api_keys(self, serverid, api_key):
-        '''with a id/api pair, assemble the webhook_url'''
+        """Load object with id/API pair
+
+        Args:
+            serverid (int): Discord 'guild' webhook is attached to
+            api_key (`str`:uuid): unique ID for webhook
+
+        """
         if serverid and api_key:
             self.can_query = True
         self.serverid = serverid
@@ -313,7 +421,7 @@ class DiscordWebhook(object):
 
 
     def get_webhook_info(self):
-        '''fetch api profile from discord servers'''
+        """Ping Discord endpoint to make sure webhook is valid and working"""
         if not self.can_query:
             raise RuntimeError('webhook information not loaded, cannot query')
 
@@ -326,8 +434,23 @@ class DiscordWebhook(object):
         return self.webhook_url
 
 class HackyDiscordHandler(logging.Handler):
-    '''hacky in-house discord/REST handler'''
+    """Custom logging.Hnalder for pushing messages to Discord
+
+    Should be able to push messages to any REST webhook with small adjustments
+
+    Stolen from https://github.com/invernizzi/hiplogging/blob/master/hiplogging/__init__.py
+
+    Discord webhook API docs: https://discordapp.com/developers/docs/resources/webhook
+
+    """
     def __init__(self, webhook_obj, alert_recipient=None):
+        """HackyDiscordHandler init
+
+        Args:
+            webhook_obj (:obj:`DiscordWebhook`): discord webhook has all the info for connection
+            alert_recipients (`str`:<@int>, optional): user/group to notify
+
+        """
         logging.Handler.__init__(self)
         self.webhook_obj = webhook_obj
         self.api_url = self.webhook_obj.webhook_url
@@ -337,7 +460,7 @@ class HackyDiscordHandler(logging.Handler):
             self.alert_length = len(self.alert_recipient)
 
     def emit(self, record):
-        '''logging logic goes here'''
+        """required classmethod for logging to execute logging message"""
         log_msg = self.format(record)
         if len(log_msg) + self.alert_length > DISCORD_MESSAGE_LIMIT:
             log_msg = log_msg[:(DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE)]
@@ -348,7 +471,14 @@ class HackyDiscordHandler(logging.Handler):
         self.send_msg_to_webhook(log_msg)
 
     def send_msg_to_webhook(self, message):
-        '''requests framework for sending log message to webhook'''
+        """separated Requests logic for easier testing
+
+        Args:
+            message (str): actual logging string to be passed to REST endpoint
+
+        Todo:
+            * Requests.text/json return for better testing options
+        """
         payload = {
             'content':message
         }
@@ -365,53 +495,13 @@ class HackyDiscordHandler(logging.Handler):
             )
         except Exception as error_msg:
             print(
-                'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' + \
-                '\r\texception={0}'.format(error_msg) + \
+                'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
+                '\r\texception={0}'.format(error_msg) +
                 '\r\tmessage={0}'.format(message)
             )
     def test(self, message):
-        '''hook for testing webhook logic'''
+        """testing hook for exercising webhook directly"""
         try:
             self.send_msg_to_webhook(message)
         except Exception as error_msg:
             raise error_msg
-class LoggerLevels:
-    '''enums for logger'''
-    #FIXME vvv import actual logger enum?
-    #https://docs.python.org/3/library/logging.html#logging-levels
-    CRITICAL = 50
-    ERROR = 40
-    WARNING = 30
-    INFO = 20
-    DEBUG = 10
-    NOTSET = 0
-
-    def str_to_level(self, log_level):
-        '''converts str to int enum'''
-        log_level = log_level.upper()
-        if  log_level == 'CRITICAL':
-            return self.CRITICAL
-        elif log_level == 'ERROR':
-            return self.ERROR
-        elif log_level == 'WARNING':
-            return self.WARNING
-        elif log_level == 'INFO':
-            return self.INFO
-        elif log_level == 'DEBUG':
-            return self.DEBUG
-        else:
-            return self.NOTSET
-
-if __name__ == '__main__':
-    TEST_LOGGER = create_logger(
-        'common_logger_debug',
-        '.',
-        COMMON_CONFIG,
-        'DEBUG'
-    )
-
-    TEST_LOGGER.debug('prosper.common.prosper_logging TEST --DEBUG--')
-    TEST_LOGGER.info('prosper.common.prosper_logging TEST --INFO--')
-    TEST_LOGGER.warning('prosper.common.prosper_logging TEST --WARNING--')
-    TEST_LOGGER.error('prosper.common.prosper_logging TEST --ERROR--')
-    TEST_LOGGER.critical('prosper.common.prosper_logging TEST --CRITICAL--')
