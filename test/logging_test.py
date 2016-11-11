@@ -10,8 +10,14 @@ import prosper.common.prosper_logging as prosper_logging
 from prosper.common.prosper_config import get_config
 
 HERE = path.abspath(path.dirname(__file__))
+ROOT = path.dirname(HERE)
 ME = __file__.replace(HERE, 'test')
-LOCAL_CONFIG = path.join(HERE, 'test_config.cfg') #use /test config
+LOCAL_CONFIG = path.join(
+    ROOT,
+    'prosper',
+    'common',
+    'common_config.cfg'
+) #use /test config
 
 TEST_CONFIG = get_config(LOCAL_CONFIG)
 
