@@ -80,7 +80,7 @@ class ProsperLogger(object):
             log_abspath,
             when=log_freq,
             interval=1,
-            backupCount=log_total #FIXME: defaults
+            backupCount=int(log_total) #FIXME: defaults
         )
 
         formatter = logging.Formatter(log_format)

@@ -66,7 +66,7 @@ def test_rotating_file_handle(config=TEST_CONFIG):
     timed_handle.doRollover() #force rollover
     after_capture = helper_log_messages(test_logger) #run logging
 
-    logging_abspath = config['Logging']['log_path']
+    logging_abspath = config['LOGGING']['log_path']
     file_list = listdir(logging_abspath)
 
     simple_file_list = []
