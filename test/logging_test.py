@@ -39,8 +39,13 @@ def helper_log_messages(
     return log_tracker
 
 ## TEST0: must clean up log directory for tests to be best ##
-def test_cleanup_log_directory(config=TEST_CONFIG):
+def test_cleanup_log_directory(
+        log_builder_obj=None,
+        config=TEST_CONFIG
+):
     '''step0: make sure directory is set up and ready to accept logs'''
+    if log_builder_obj:
+        log_builder_obj.close_handles()
     log_path = path.abspath(config['LOGGING']['log_path'])
 
     log_list = listdir(log_path)
@@ -107,7 +112,7 @@ def test_rotating_file_handle(config=TEST_CONFIG):
 
     #TODO: validate before_capture/after_capture
 
-    test_cleanup_log_directory()
+    test_cleanup_log_directory(log_builder)
 
 #TODO: add pytest.mark to skip
 def test_webhook(config_override=TEST_CONFIG):
@@ -153,7 +158,7 @@ def test_default_logger(config=TEST_CONFIG):
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
 
-    test_cleanup_log_directory()
+    test_cleanup_log_directory(log_builder)
 
 def test_debug_logger(config=TEST_CONFIG):
     '''validate debug logger'''
@@ -175,7 +180,7 @@ def test_debug_logger(config=TEST_CONFIG):
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
 
-    test_cleanup_log_directory()
+    test_cleanup_log_directory(log_builder)
 
 def test_discord_logger(config=TEST_CONFIG):
     '''validate discord/webhook logger'''
@@ -213,4 +218,4 @@ def test_discord_logger(config=TEST_CONFIG):
     )
 
 if __name__ == '__main__':
-    test_debug_logger()
+    test_rotating_file_handle()

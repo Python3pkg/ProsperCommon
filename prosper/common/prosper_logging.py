@@ -97,6 +97,13 @@ class ProsperLogger(object):
         """return list of 'handler_name @ log_level' for debug"""
         return ','.join(self.log_info)
 
+    def close_handles(self):
+        for handle in self.log_handlers:
+            try:
+                handle.close()
+            except Exception:
+                pass
+
     def configure_default_logger(
             self,
             log_freq=None,
