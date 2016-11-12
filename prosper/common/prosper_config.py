@@ -48,6 +48,33 @@ class ProsperConfig(object):
         """
         pass
 
+    def get_option(
+            self,
+            section_name,
+            key_name,
+            args_option=None,
+            args_default=None
+    ):
+        """evaluates the requested option and returns the correct value
+
+        Notes:
+            Priority order
+            1. args given at runtile
+            2. <config_file>_local.cfg -- untracked config with #SECRETS
+            3. <config_file>.cfg -- tracked 'master' config without #SECRETS
+
+        Args:
+            section_name (str): section level name in config
+            key_name (str): key name for option in config
+            args_option (any): arg option given by a function
+            args_default (any): arg default given by a function
+
+        Returns:
+            (str) appropriate response as per priority order
+
+        """
+        pass
+
 def get_configs(
         config_filepath,
         logger=DEFAULT_LOGGER,
