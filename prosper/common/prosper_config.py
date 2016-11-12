@@ -27,8 +27,6 @@ class ProsperConfig(object):
     Attributes:
         global_config (:obj:`configparser.ConfigParser`)
         local_config (:obj:`configparser.ConfigParser`)
-        global_cache (:obj:`dict`) volatile stash of read configs
-        local_cache (:obj:`dict`) volatile stash of read configs
 
     """
     _debug_mode = False
@@ -46,7 +44,8 @@ class ProsperConfig(object):
             debug_mode (bool, optional): enable debug modes for config helper
 
         """
-        pass
+        self.config_filename = config_filename
+        self.global_config, self.local_config = get_configs(config_filename)
 
     def get_option(
             self,
@@ -92,7 +91,35 @@ def get_configs(
         (:obj:`configparser.ConfigParser`) local_config
 
     """
-    pass
+    global_config = configparser.ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True,
+        delimiters=('='),
+        inline_comment_prefixes=('#')
+    )
+    try:
+        with open(config_filepath, 'r') as filehandle:
+            global_config.read_file(filehandle)
+    except Exception as error_msg:
+        raise error_msg
+
+    local_config = configparser.ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True,
+        delimiters=('='),
+        inline_comment_prefixes=('#')
+    )
+    local_filepath = config_filepath.replace('.cfg', '_local.cfg')
+    try:
+        with open(local_filepath, 'r') as filehandle:
+            local_config.read_file(filehandle)
+    except IOError as error_msg:
+        warnings.warn('No ' + local_filepath + ' found in path')
+        local_config = None
+    except Exception as error_msg:
+        raise error_msg
+
+    return global_config, local_config
 
 def get_config(
         config_filepath,
