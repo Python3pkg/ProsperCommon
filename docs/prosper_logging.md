@@ -4,7 +4,7 @@ All [Prosper](https://github.com/EVEprosper) scripts use a unified logger.  `Pro
 # How to use ProsperLogger
 Building a logger is easy.
 
-```
+```python
 import prosper.common.prosper_logging as p_log
 
 LogBuilder = p_log.ProsperLogger(
@@ -27,7 +27,7 @@ the `LogBuilder` can be extended with some other handlers if required.  Also, de
 
 ## configure_default_logger
 
-```
+```python
 def configure_default_logger(
     self,
     log_freq:str,
@@ -48,7 +48,7 @@ This handler is loaded by default.  It can be reset by calling `ProsperLogger().
 
 ## configure_debug_logger
 
-```
+```python
 def configure_debug_logger(
     self,
     log_level:log_level_str,
@@ -65,7 +65,7 @@ For live debugging, report logging messages to standard out.  This can be attach
 
 ## configure_discord_handler
 
-```
+```python
 def configure_discord_handler(
     self,
     log_level:log_level_str,
