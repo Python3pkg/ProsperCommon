@@ -33,6 +33,7 @@ class ProsperConfig(object):
     def __init__(
             self,
             config_filename,
+            local_filepath_override=None,
             logger=DEFAULT_LOGGER,
             debug_mode=_debug_mode
     ):
@@ -40,12 +41,16 @@ class ProsperConfig(object):
 
         Args:
             config_filename (str): path to config
+            local_filepath_override (str, optional): path to alternate private config file
             logger (:obj:`logging.Logger`, optional): capture messages to logger
             debug_mode (bool, optional): enable debug modes for config helper
 
         """
         self.config_filename = config_filename
-        self.global_config, self.local_config = get_configs(config_filename)
+        self.global_config, self.local_config = get_configs(
+            config_filename,
+            local_filepath_override
+        )
 
     def get_option(
             self,
@@ -76,6 +81,7 @@ class ProsperConfig(object):
 
 def get_configs(
         config_filepath,
+        local_filepath_override=None,
         logger=DEFAULT_LOGGER,
         debug_mode=False
 ):
@@ -109,7 +115,11 @@ def get_configs(
         delimiters=('='),
         inline_comment_prefixes=('#')
     )
+
     local_filepath = config_filepath.replace('.cfg', '_local.cfg')
+    if local_filepath_override:
+        local_filepath = local_filepath_override
+
     try:
         with open(local_filepath, 'r') as filehandle:
             local_config.read_file(filehandle)
