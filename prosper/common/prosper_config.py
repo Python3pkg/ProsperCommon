@@ -48,6 +48,24 @@ class ProsperConfig(object):
         """
         pass
 
+def get_configs(
+        config_filepath,
+        logger=DEFAULT_LOGGER,
+        debug_mode=False
+):
+    """go and fetch the global/local configs from file and load them with configparser
+
+    Args:
+        config_filename (str): path to config
+        logger (:obj:`logging.Logger`, optional): capture messages to logger
+        debug_mode (bool, optional): enable debug modes for config helper
+
+    Returns:
+        (:obj:`configparser.ConfigParser`) global_config
+        (:obj:`configparser.ConfigParser`) local_config
+
+    """
+    pass
 
 def get_config(
         config_filepath,
