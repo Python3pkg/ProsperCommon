@@ -27,7 +27,8 @@ class ProsperConfig(object):
     Attributes:
         global_config (:obj:`configparser.ConfigParser`)
         local_config (:obj:`configparser.ConfigParser`)
-
+        config_filename (str): filename of global/tracked/default .cfg file
+        local_config_filename (str): filename for local/custom .cfg file
     """
     _debug_mode = False
     def __init__(
@@ -47,6 +48,10 @@ class ProsperConfig(object):
 
         """
         self.config_filename = config_filename
+        self.local_config_filename = get_local_config_filepath(config_filename)
+        if local_filepath_override:
+            self.local_config_filename = local_filepath_override
+            #TODO: force filepaths to abspaths?
         self.global_config, self.local_config = get_configs(
             config_filename,
             local_filepath_override
@@ -116,7 +121,7 @@ def get_configs(
         inline_comment_prefixes=('#')
     )
 
-    local_filepath = config_filepath.replace('.cfg', '_local.cfg')
+    local_filepath = get_local_config_filepath(config_filepath, True)
     if local_filepath_override:
         local_filepath = local_filepath_override
 
