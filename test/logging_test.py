@@ -1,4 +1,12 @@
-from os import path, makedirs, listdir, remove
+"""logging_test.py
+
+Test suite for prosper_logger.py
+
+Uses pytest to execute tests
+
+"""
+
+from os import path, listdir, remove
 import configparser
 import logging
 from datetime import datetime
@@ -17,7 +25,7 @@ LOCAL_CONFIG = path.join(
     'prosper',
     'common',
     'common_config.cfg'
-) #use /test config
+)   #use root config
 
 TEST_CONFIG = get_config(LOCAL_CONFIG)
 
@@ -26,7 +34,17 @@ def helper_log_messages(
         log_capture_override=None,
         config=TEST_CONFIG
 ):
-    '''messages each logger tester should execute with their log handler'''
+    """Helper for executing logging same way for every test
+
+    Args:
+        logger (:obj:`logging.logger`) logger to commit messages to
+        log_capture_override (str): override/filter for testfixtures.LogCapture
+        config (:obj: `configparser.ConfigParser`): config override for function values
+
+    Returns:
+        (:obj:`testfixtures.LogCapture`) https://pythonhosted.org/testfixtures/logging.html
+
+    """
     with LogCapture(log_capture_override) as log_tracker:
         logger.debug(   'prosper.common.prosper_logging TEST --DEBUG--')
         logger.info(    'prosper.common.prosper_logging TEST --INFO--')
@@ -43,7 +61,7 @@ def test_cleanup_log_directory(
         log_builder_obj=None,
         config=TEST_CONFIG
 ):
-    '''step0: make sure directory is set up and ready to accept logs'''
+    """Test0: clean up testing log directory.  Only want log-under-test"""
     if log_builder_obj:
         log_builder_obj.close_handles()
     log_path = path.abspath(config['LOGGING']['log_path'])
@@ -55,7 +73,12 @@ def test_cleanup_log_directory(
             remove(log_abspath)
 
 def test_rotating_file_handle(config=TEST_CONFIG):
-    '''validate that rotating filehandle object executes correctly'''
+    """Exercise TimedRotatingFileHandler to make sure logs are generating as expected
+
+    Todo:
+        * Validate before_capture/after_capture testfixtures.LogCapture objects
+
+    """
     test_logname = 'timedrotator'
     log_builder = prosper_logging.ProsperLogger(
         test_logname,
@@ -116,7 +139,7 @@ def test_rotating_file_handle(config=TEST_CONFIG):
 
 #TODO: add pytest.mark to skip
 def test_webhook(config_override=TEST_CONFIG):
-    '''push hello world message to discord for testing'''
+    """Push 'hello world' message through Discord webhook"""
     try:
         webhook = config_override.get('LOGGING', 'discord_webhook')
     except configparser.NoOptionError as error_msg:
@@ -134,15 +157,27 @@ def test_webhook(config_override=TEST_CONFIG):
     test_handler.test(str(ME) + ' -- hello world')
 
 def test_logpath_builder_positive(config=TEST_CONFIG):
-    '''make sure `test_logpath` has expected behavior -- affirmative case'''
+    """Make sure test_logpath() function has expected behavior -- affermative case
+
+    Todo:
+        * Test not implemented at this time
+        * Requires platform-specific directory/permissions manipulation
+
+    """
     pytest.skip(__name__ + ' not configured yet')
 
 def test_logpath_builder_negative(config=TEST_CONFIG):
-    '''make sure `test_logpath` has expected behavior -- fail case'''
+    """Make sure test_logpath() function has expected behavior -- fail case
+
+    Todo:
+        * Test not implemented at this time
+        * Requires platform-specific directory/permissions manipulation
+
+    """
     pytest.skip(__name__ + ' not configured yet')
 
 def test_default_logger(config=TEST_CONFIG):
-    '''validate default logger'''
+    """Execute LogCapture on basic/default logger object"""
     test_logname = 'default_logger'
     log_builder = prosper_logging.ProsperLogger(
         test_logname,
@@ -161,7 +196,7 @@ def test_default_logger(config=TEST_CONFIG):
     test_cleanup_log_directory(log_builder)
 
 def test_debug_logger(config=TEST_CONFIG):
-    '''validate debug logger'''
+    """Execute LogCapture on debug logger object"""
     test_logname = 'debug_logger'
     log_builder = prosper_logging.ProsperLogger(
         test_logname,
@@ -183,7 +218,7 @@ def test_debug_logger(config=TEST_CONFIG):
     test_cleanup_log_directory(log_builder)
 
 def test_discord_logger(config=TEST_CONFIG):
-    '''validate discord/webhook logger'''
+    """Execute LogCapture on Discord logger object"""
     test_logname = 'discord_logger'
     log_builder = prosper_logging.ProsperLogger(
         test_logname,

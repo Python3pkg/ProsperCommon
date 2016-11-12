@@ -13,6 +13,10 @@ LogBuilder = p_log.ProsperLogger(
     configuration_object,
     bool:debug_mode [optional]
 )
+LogBuilder.configure_discord_logger() # log ERROR/CRITICAL to Discord
+
+if DEBUG:
+    LogBuilder.configure_debug_logger() # log debug messages to STDOUT
 
 logger = LogBuilder.get_logger()
 ```
@@ -111,14 +115,14 @@ Instead we include some helpful baked-in formats for easy setup:
 * `ReportingFormats.DEFAULT` (for file logging)
 
     `[2016-10-14 16:11:38,805;DEBUG;prosper_logging.py;<module>;185] prosper.common.prosper_logging TEST --DEBUG--`
-    
+
 * `ReportingFormats.PRETTY_PRINT` (for Discord logging)
 
     ```
     [DEBUG:prosper_logging.py--<module>:185]
     prosper.common.prosper_logging TEST --DEBUG--
     ```
-    
+
 * `ReportingFormats.STDOUT` (for std-out/console logging)
 
     `[DEBUG:prosper_logging.py--<module>:185] prosper.common.prosper_logging TEST --DEBUG--`

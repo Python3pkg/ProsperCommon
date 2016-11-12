@@ -1,4 +1,25 @@
-'''prosper_logging.py: extension/standadized logging utilities for prosper'''
+"""prosper_logging.py
+
+A unified logger for all Prosper python scripts.  Easy extensions included to make life easy
+
+Example:
+    import prosper.common.prosper_logging as p_log
+
+    LogBuilder = p_log.ProsperLogger(
+        'log_name',
+        'desired/log/path',
+        configuration_object,
+        bool:debug_mode [optional]
+    )
+
+    LogBuilder.configure_discord_logger() # log ERROR/CRITICAL to Discord
+
+    if DEBUG:
+        LogBuilder.configure_debug_logger()
+
+    logger = LogBuilder.get_logger()
+
+"""
 
 from os import path, makedirs, access, W_OK#, R_OK
 import logging
@@ -98,6 +119,7 @@ class ProsperLogger(object):
         return ','.join(self.log_info)
 
     def close_handles(self):
+        """cannot delete logs unless handles are closed (windows)"""
         for handle in self.log_handlers:
             try:
                 handle.close()
