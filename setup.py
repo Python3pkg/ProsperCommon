@@ -7,8 +7,14 @@ from setuptools.command.test import test as TestCommand
 HERE = path.abspath(path.dirname(__file__))
 
 def hack_find_packages(include_str):
-    '''append include_str into find_packages path'''
-    # Some issue with find_packages() and directory design?
+    """patches setuptools.find_packages issue
+
+    setuptools.find_packages(path='') doesn't work as intended
+
+    Returns:
+        (:obj:`list` :obj:`str`) append <include_str>. onto every element of setuptools.find_pacakges() call
+
+    """
     new_list = [include_str]
     for element in find_packages(include_str):
         new_list.append(include_str + '.' + element)
@@ -16,7 +22,15 @@ def hack_find_packages(include_str):
     return new_list
 
 def include_all_subfiles(*args):
-    '''makes up for /* include'''
+    """Slurps up all files in a directory (non recursive) for data_files section
+
+    Note:
+        Not recursive, only includes flat files
+
+    Returns:
+        (:obj:`list` :obj:`str`) list of all non-directories in a file
+
+    """
     file_list = []
     for path_included in args:
         local_path = path.join(HERE, path_included)
@@ -30,8 +44,11 @@ def include_all_subfiles(*args):
     return file_list
 
 class PyTest(TestCommand):
-    '''PyTest cmdclass hook for test-at-buildtime functionality
-    http://doc.pytest.org/en/latest/goodpractices.html#manual-integration'''
+    """PyTest cmdclass hook for test-at-buildtime functionality
+
+    http://doc.pytest.org/en/latest/goodpractices.html#manual-integration
+
+    """
     user_options = [('pytest-args=', 'a', "Arguments to pass to pytest")]
 
     def initialize_options(self):
