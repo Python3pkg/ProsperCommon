@@ -62,7 +62,13 @@ def test_priority_order():
     ## Test #4 priority
     assert TestConfigObj.get_option('TEST', 'nokey', 111, 111) == 111
 
+def test_local_filepath_helper():
+    """test helper function for fetching local configs"""
+    expected_local_filepath = TEST_LOCAL_CONFIG_PATH.replace('.cfg', '_local.cfg')
 
+    assert prosper_config.get_local_config_filepath(TEST_LOCAL_CONFIG_PATH) == TEST_LOCAL_CONFIG_PATH
+
+    assert prosper_config.get_local_config_filepath(TEST_LOCAL_CONFIG_PATH, True) == expected_local_filepath
 def test_config_file():
     """Test makes sure tracked/local configs have all matching keys"""
     unique_values = prosper_utilities.compare_config_files(LOCAL_CONFIG_PATH)

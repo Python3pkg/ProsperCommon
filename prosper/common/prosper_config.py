@@ -195,8 +195,20 @@ def get_config(
         config.read_file(filehandle)
     return config
 
-def get_local_config_filepath(config_filepath, force_local=False):
-    '''logic to find filepath of _local.cfg'''
+def get_local_config_filepath(
+        config_filepath,
+        force_local=False
+):
+    """helper for finding local filepath for config
+
+    Args:
+        config_filepath (str): path to local config abspath > relpath
+        force_local (bool, optional): force return of _local.cfg version
+
+    Returns:
+        (str): Path to local config, or global if path DNE
+
+    """
     local_config_filepath = config_filepath.replace('.cfg', '_local.cfg')
 
     real_config_filepath = ''
