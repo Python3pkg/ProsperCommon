@@ -12,6 +12,12 @@ if not path.isfile(LOCAL_CONFIG):   #else use /prosper/common config
     DEFAULT_PATH = path.join(path.dirname(HERE), 'prosper', 'common')
     LOCAL_CONFIG = path.join(DEFAULT_PATH, 'common_config.cfg')
 
+TEST_LOCAL_CONFIG_PATH = path.join(HERE, 'test_config_local.cfg')
+TEST_LOCAL_CONFIG = prosper_utilities.read_config(TEST_LOCAL_CONFIG_PATH)
+
+TEST_GLOBAL_CONFIG_PATH = path.join(HERE, 'test_config_global.cfg')
+TEST_GLOBAL_CONFIG = prosper_utilities.read_config(TEST_GLOBAL_CONFIG_PATH)
+
 def test_config_file():
     '''make sure local/tracked config files mesh'''
     unique_values = prosper_utilities.compare_config_files(LOCAL_CONFIG)

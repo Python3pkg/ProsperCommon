@@ -128,39 +128,45 @@ def get_configs(
         (:obj:`configparser.ConfigParser`) local_config
 
     """
-    global_config = configparser.ConfigParser(
-        interpolation=ExtendedInterpolation(),
-        allow_no_value=True,
-        delimiters=('='),
-        inline_comment_prefixes=('#')
-    )
-    try:
-        with open(config_filepath, 'r') as filehandle:
-            global_config.read_file(filehandle)
-    except Exception as error_msg:
-        raise error_msg
-
-    local_config = configparser.ConfigParser(
-        interpolation=ExtendedInterpolation(),
-        allow_no_value=True,
-        delimiters=('='),
-        inline_comment_prefixes=('#')
-    )
+    global_config = read_config(config_filepath)
 
     local_filepath = get_local_config_filepath(config_filepath, True)
     if local_filepath_override:
         local_filepath = local_filepath_override
-
-    try:
-        with open(local_filepath, 'r') as filehandle:
-            local_config.read_file(filehandle)
-    except IOError as error_msg:
-        warnings.warn('No ' + local_filepath + ' found in path')
-        local_config = None
-    except Exception as error_msg:
-        raise error_msg
+    local_config = read_config(local_filepath)
 
     return global_config, local_config
+
+def read_config(
+        config_filepath,
+        logger=DEFAULT_LOGGER
+):
+    """fetch and parse config file
+
+    Args:
+        config_filepath (str): path to config file.  abspath > relpath
+        logger (:obj:`logging.Logger`, optional): logger to catch error msgs
+
+    """
+    config_parser = configparser.ConfigParser(
+        interpolation=ExtendedInterpolation(),
+        allow_no_value=True,
+        delimiters=('='),
+        inline_comment_prefixes=('#')
+    )
+    logger.debug('config_filepath={0}'.format(config_filepath))
+    try:
+        with open(config_filepath, 'r') as filehandle:
+            config_parser.read_file(filehandle)
+    except Exception as error_msg:
+        logger.error(
+            'EXCEPTION - Unable to parse config file' +
+            '\r\texception={0}'.format(error_msg) +
+            '\r\tconfig_filepath{0}'.format(config_filepath)
+        )
+        raise error_msg
+
+    return config_parser
 
 def get_config(
         config_filepath,
