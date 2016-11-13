@@ -93,17 +93,19 @@ class ProsperConfig(object):
         section_info = section_name + '.' + key_name
         try:
             local_option = self.local_config[section_name][key_name]
-            self.logger.debug('-- using local config')
-            return local_option
         except KeyError:
             self.logger.debug(section_info + 'not found in local config')
+        if local_option:
+            self.logger.debug('-- using local config')
+            return local_option
 
         try:
             global_option = self.global_config[section_name][key_name]
-            self.logger.debug('-- using global config')
-            return global_option
         except KeyError:# as error_msg:
             self.logger.warning(section_info + 'not found in global config')
+        if global_option:
+            self.logger.debug('-- using global config')
+            return global_option
 
         self.logger.debug('-- using default argument')
         return args_default #If all esle fails return the given default

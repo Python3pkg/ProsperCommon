@@ -15,13 +15,6 @@ LOCAL_CONFIG_PATH = path.join(
     'common_config.cfg'
 )
 
-
-TEST_LOCAL_CONFIG_PATH = path.join(HERE, 'test_config_local.cfg')
-TEST_LOCAL_CONFIG = prosper_config.read_config(TEST_LOCAL_CONFIG_PATH)
-
-TEST_GLOBAL_CONFIG_PATH = path.join(HERE, 'test_config_global.cfg')
-TEST_GLOBAL_CONFIG = prosper_config.read_config(TEST_GLOBAL_CONFIG_PATH)
-
 TEST_BAD_CONFIG_PATH = path.join(HERE, 'bad_config.cfg')
 TEST_BAD_PATH = path.join(HERE, 'no_file_here.cfg')
 def test_bad_config():
@@ -40,6 +33,35 @@ def test_bad_config():
     ## Test behavior with bad filepath
     with pytest.raises(FileNotFoundError):
         bad_config = prosper_config.read_config(TEST_BAD_PATH)
+
+TEST_GLOBAL_CONFIG_PATH = path.join(HERE, 'test_config_global.cfg')
+TEST_LOCAL_CONFIG_PATH = path.join(HERE, 'test_config_local.cfg')
+def test_priority_order():
+    """Makes sure desired priority order is followed
+
+        1. override_value
+        2. local_config option
+        3. global_config option
+        4. default_value
+
+    """
+    TestConfigObj = prosper_config.ProsperConfig(
+        TEST_GLOBAL_CONFIG_PATH,
+        local_filepath_override=TEST_LOCAL_CONFIG_PATH
+    )
+
+    ## Test #1 priority:
+    assert TestConfigObj.get_option('TEST', 'key2', 999, None) == 999
+
+    ## Test #2 priority
+    assert TestConfigObj.get_option('TEST', 'key2', None, None) == str(100)
+
+    ## Test #3 priority
+    assert TestConfigObj.get_option('TEST', 'key3', None, None) == 'stuff'
+
+    ## Test #4 priority
+    assert TestConfigObj.get_option('TEST', 'nokey', 111, 111) == 111
+
 
 def test_config_file():
     """Test makes sure tracked/local configs have all matching keys"""
