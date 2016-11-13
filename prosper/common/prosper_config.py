@@ -23,6 +23,7 @@ class ProsperConfig(object):
     1. args given at runtile
     2. <config_file>_local.cfg -- untracked config with #SECRETS
     3. <config_file>.cfg -- tracked 'master' config without #SECRETS
+    4. args_default -- function default w/o global config
 
     Attributes:
         global_config (:obj:`configparser.ConfigParser`)
@@ -72,6 +73,7 @@ class ProsperConfig(object):
             1. args given at runtile
             2. <config_file>_local.cfg -- untracked config with #SECRETS
             3. <config_file>.cfg -- tracked 'master' config without #SECRETS
+            4. args_default -- function default w/o global config
 
         Args:
             section_name (str): section level name in config
@@ -105,6 +107,10 @@ class ProsperConfig(object):
 
         self.logger.debug('-- using default argument')
         return args_default #If all esle fails return the given default
+
+    def attach_logger(self, logger):
+        """because load orders might be weird, add logger later"""
+        self.logger = logger
 
 def get_configs(
         config_filepath,
