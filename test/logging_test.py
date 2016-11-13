@@ -168,6 +168,7 @@ def test_logpath_builder_negative(config=TEST_CONFIG):
 
     """
     pytest.skip(__name__ + ' not configured yet')
+
 def test_default_logger_options(config=TEST_CONFIG):
     """validate expected values from config object.  DO NOT CRASH DEFAULT LOGGER"""
     option_config_filepath = prosper_config.get_local_config_filepath(LOCAL_CONFIG_PATH)
