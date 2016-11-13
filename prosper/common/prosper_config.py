@@ -47,6 +47,7 @@ class ProsperConfig(object):
             debug_mode (bool, optional): enable debug modes for config helper
 
         """
+        self.logger = logger
         self.config_filename = config_filename
         self.local_config_filename = get_local_config_filepath(config_filename)
         if local_filepath_override:
@@ -59,8 +60,8 @@ class ProsperConfig(object):
 
     def get_option(
             self,
-            section_name,
-            key_name,
+            section_name: str,
+            key_name: str,
             args_option=None,
             args_default=None
     ):
@@ -82,19 +83,38 @@ class ProsperConfig(object):
             (str) appropriate response as per priority order
 
         """
-        pass
+        self.logger.debug('picking config')
+        if args_option != args_default:
+            self.logger.debug('-- using function args')
+            return args_option
+
+        section_info = section_name + '.' + key_name
+        try:
+            local_option = self.local_config[section_name][key_name]
+            self.logger.debug('-- using local config')
+            return local_option
+        except KeyError:
+            self.logger.debug(section_info + 'not found in local config')
+
+        try:
+            global_option = self.global_config[section_name][key_name]
+            self.logger.debug('-- using global config')
+            return global_option
+        except KeyError:# as error_msg:
+            self.logger.warning(section_info + 'not found in global config')
+
+        self.logger.debug('-- using default argument')
+        return args_default #If all esle fails return the given default
 
 def get_configs(
         config_filepath,
         local_filepath_override=None,
-        logger=DEFAULT_LOGGER,
         debug_mode=False
 ):
     """go and fetch the global/local configs from file and load them with configparser
 
     Args:
         config_filename (str): path to config
-        logger (:obj:`logging.Logger`, optional): capture messages to logger
         debug_mode (bool, optional): enable debug modes for config helper
 
     Returns:
