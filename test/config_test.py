@@ -1,4 +1,9 @@
-'''config_test.py: test prosper_config functionality'''
+"""config_test.py
+
+Pytest functions for exercising prosper.common.prosper_config
+
+"""
+
 from os import path
 import json
 import pytest
@@ -69,6 +74,7 @@ def test_local_filepath_helper():
     assert prosper_config.get_local_config_filepath(TEST_LOCAL_CONFIG_PATH) == TEST_LOCAL_CONFIG_PATH
 
     assert prosper_config.get_local_config_filepath(TEST_LOCAL_CONFIG_PATH, True) == expected_local_filepath
+
 def test_config_file():
     """Test makes sure tracked/local configs have all matching keys"""
     unique_values = prosper_utilities.compare_config_files(LOCAL_CONFIG_PATH)

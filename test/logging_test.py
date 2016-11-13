@@ -1,8 +1,6 @@
 """logging_test.py
 
-Test suite for prosper_logger.py
-
-Uses pytest to execute tests
+Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
