@@ -28,14 +28,16 @@ import warnings
 
 import requests
 
-from prosper.common.prosper_config import get_config
+import prosper.common.prosper_config as p_config
 import prosper.common.prosper_utilities as p_utils
 
 HERE = path.abspath(path.dirname(__file__))
 ME = __file__.replace('.py', '')
 CONFIG_ABSPATH = path.join(HERE, 'common_config.cfg')
 
-COMMON_CONFIG = get_config(CONFIG_ABSPATH)
+#COMMON_CONFIG = get_config(CONFIG_ABSPATH)
+COMMON_CONFIG = p_config.ProsperConfig(CONFIG_ABSPATH)
+
 DISCORD_MESSAGE_LIMIT = 2000
 DISCORD_PAD_SIZE = 100
 
@@ -100,7 +102,11 @@ class ProsperLogger(object):
 
         """
         self.logger = logging.getLogger(log_name)
-        self.log_options = p_utils.parse_options(config_obj, 'LOGGING')
+        if not isinstance(config_obj, p_config.ProsperConfig):
+            raise TypeError
+        self.config = config_obj
+
+        #self.log_options = p_utils.parse_options(config_obj, 'LOGGING')
         self._debug_mode = debug_mode
         self.log_name = log_name
         self.log_path = test_logpath(log_path, debug_mode)
@@ -108,7 +114,12 @@ class ProsperLogger(object):
         self.log_info = []
         self.log_handlers = []
 
-        self.configure_default_logger(debug_mode=debug_mode)
+        self.configure_default_logger(
+            log_freq='midnight',
+            log_total=30,
+            log_level='INFO',
+            debug_mode=debug_mode
+        )
 
     def get_logger(self):
         """return the logger for the user"""
@@ -124,7 +135,7 @@ class ProsperLogger(object):
             try:
                 handle.close()
             except Exception:
-                pass
+                pass #do not crash if can't close handle
 
     def configure_default_logger(
             self,
@@ -144,16 +155,15 @@ class ProsperLogger(object):
             debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
 
         """
-        try:
-            if not log_freq:
-                log_freq = self.log_options['log_freq']
-            if not log_total:
-                log_total = self.log_options['log_total']
-            if not log_level:
-                log_level = self.log_options['log_level']
-        except KeyError as error_msg:
-            raise error_msg
+        ## Override defaults if required ##
+        log_freq  = self.config.get_option('LOGGER', 'log_freq', None, log_freq)
+        log_total = self.config.get_option('LOGGER', 'log_total', None, log_total)
+        log_level = self.config.get_option('LOGGER', 'log_level', None, log_level)
+        log_format_name = self.config.get_option('LOGGER', 'log_format', None, None)
+        if log_format_name:
+            log_format = ReportingFormats().str_to_format(log_format_name)
 
+        ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
         log_abspath = path.join(self.log_path, log_filename)
         general_handler = TimedRotatingFileHandler(
@@ -163,12 +173,13 @@ class ProsperLogger(object):
             backupCount=int(log_total) #FIXME: defaults
         )
 
+        ## Attach default handlers/formatter ##
         formatter = logging.Formatter(log_format)
         general_handler.setFormatter(formatter)
-
         self.logger.setLevel(log_level)
         self.logger.addHandler(general_handler)
 
+        ## Save info about handler created ##
         self.log_info.append('default @ ' + str(log_level))
         self.log_handlers.append(general_handler)
 
@@ -189,16 +200,25 @@ class ProsperLogger(object):
             debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
 
         """
-        log_level_value = logging.getLevelName(log_level)
+        ## Override defaults if required ##
+        log_level = self.config.get_option('LOGGER', 'debug_log_level', None, log_level)
+        log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
+        if log_format_name:
+            log_format = ReportingFormats().str_to_format(log_format_name)
+
+        ## Attach handlers/formatter ##
         formatter = logging.Formatter(log_format)
         debug_handler = logging.StreamHandler()
         debug_handler.setFormatter(formatter)
         debug_handler.setLevel(log_level)
 
+        ## Extend default Logger.setLevel if required ##
+        log_level_value = logging.getLevelName(log_level)
         self.logger.addHandler(debug_handler)
         if not self.logger.isEnabledFor(log_level_value):
             self.logger.setLevel(log_level) #override log_level min if less than current min
 
+        ## Save info about handler created ##
         self.log_info.append('debug @ ' + str(log_level))
         self.log_handlers.append(debug_handler)
 
@@ -224,23 +244,21 @@ class ProsperLogger(object):
             debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
 
         """
-        ## Make sure we can set discord handlers ##
+        ## Override defaults if required ##
+        discord_webhook = self.config.get_option('LOGGING', 'discord_webhook', None, discord_webhook)
+        discord_recipient = self.config.get_option('LOGGING', 'discord_recipient', None, discord_recipient)
+        log_level = self.config.get_option('LOGGING', 'discord_log_level', None, log_level)
+        log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
+        if log_format_name:
+            log_format = ReportingFormats().str_to_format(log_format_name)
+
+        ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:
-            try:
-                discord_webhook = self.log_options['discord_webhook']
-            except KeyError:
-                warnings.warn(
-                    'Lacking discord_webhook defintion, unable to attach webhook',
-                    ResourceWarning
-                )
-                return None
-            finally:
-                if not discord_webhook:
-                    warnings.warn(
-                        'Lacking discord_webhook defintion, unable to attach webhook',
-                        ResourceWarning
-                    )
-                    return None
+            warnings.warn(
+                'Lacking discord_webhook defintion, unable to attach webhook',
+                ResourceWarning
+            )
+            return
 
         ## Actually build discord logging handler ##
         discord_obj = DiscordWebhook()
@@ -261,7 +279,10 @@ class ProsperLogger(object):
             self.log_info.append('discord @ ' + str(log_level))
             self.log_handlers.append(discord_handler)
         else:
-            warnings.warn('Unable to execute webhook', ResourceWarning)
+            warnings.warn(
+                'Unable to execute webhook',
+                ResourceWarning
+            )
 
 def test_logpath(log_path, debug_mode=False):
     """Tests if logger has access to given path and sets up directories

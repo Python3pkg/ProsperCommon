@@ -86,11 +86,14 @@ class ProsperConfig(object):
 
         """
         self.logger.debug('picking config')
-        if args_option != args_default:
+        if args_option != args_default and\
+           args_option is not None:
             self.logger.debug('-- using function args')
             return args_option
 
         section_info = section_name + '.' + key_name
+
+        local_option = None
         try:
             local_option = self.local_config[section_name][key_name]
         except KeyError:
@@ -99,6 +102,7 @@ class ProsperConfig(object):
             self.logger.debug('-- using local config')
             return local_option
 
+        global_option = None
         try:
             global_option = self.global_config[section_name][key_name]
         except KeyError:# as error_msg:
