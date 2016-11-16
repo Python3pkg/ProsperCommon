@@ -366,7 +366,6 @@ def create_logger(
 
     log_name = log_name + '.log'
     log_format = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
-    #print(logName + ':' + logLevel)
     if log_level_override:
         log_level = log_level_override
 
@@ -384,7 +383,6 @@ def create_logger(
     Logger.addHandler(generalHandler)
 
     if log_level_override == 'DEBUG':
-        #print('LOGGER: adding stdout handler')
         short_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
         short_formatter = logging.Formatter(short_format)
         stdout = logging.StreamHandler()
@@ -397,7 +395,6 @@ def create_logger(
             #config_obj.has_option('LOGGING', 'discord_alert_recipient')
     ]):
         #message_maxlength = DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE
-        #print('LOGGER: adding discord handler')
         discord_format = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
         alert_recipient = None
         if config_obj.has_option('LOGGING', 'discord_alert_recipient'):
@@ -418,7 +415,7 @@ def create_logger(
                 dh.setLevel(discord_level)
                 Logger.addHandler(dh)
             except Exception as error_msg:
-                print('UNABLE TO ATTATCH DISCORD HANDLER - ' + str(error_msg))
+                raise error_msg
 
     return Logger
 
@@ -545,10 +542,14 @@ class HackyDiscordHandler(logging.Handler):
                 json=payload
             )
         except Exception as error_msg:
-            print(
+            warning_msg = (
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
                 '\r\texception={0}'.format(error_msg) +
                 '\r\tmessage={0}'.format(message)
+            )
+            warnings.warn(
+                warning_msg,
+                ResourceWarning
             )
     def test(self, message):
         """testing hook for exercising webhook directly"""
