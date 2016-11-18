@@ -7,8 +7,6 @@ import smtplib
 from datetime import datetime
 import time
 
-import pytest
-
 from prosper.common.prosper_config import get_config, get_local_config_filepath
 
 DEFAULT_LOGGER = logging.getLogger('NULL')
@@ -22,7 +20,8 @@ def compare_config_files(config_filepath):
     unique_values = {}
 
     if not path.isfile(get_local_config_filepath(config_filepath)):
-        pytest.skip('no local .cfg found, skipping')
+        #pytest.skip('no local .cfg found, skipping')
+        return None
 
     local_unique_sections, local_unique_keys = find_unique_keys(
         local_config,
