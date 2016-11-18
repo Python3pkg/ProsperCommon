@@ -156,10 +156,10 @@ class ProsperLogger(object):
 
         """
         ## Override defaults if required ##
-        log_freq  = self.config.get_option('LOGGER', 'log_freq', None, log_freq)
-        log_total = self.config.get_option('LOGGER', 'log_total', None, log_total)
-        log_level = self.config.get_option('LOGGER', 'log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGER', 'log_format', None, None)
+        log_freq  = self.config.get_option('LOGGING', 'log_freq', None, log_freq)
+        log_total = self.config.get_option('LOGGING', 'log_total', None, log_total)
+        log_level = self.config.get_option('LOGGING', 'log_level', None, log_level)
+        log_format_name = self.config.get_option('LOGGING', 'log_format', None, None)
         if log_format_name:
             log_format = ReportingFormats().str_to_format(log_format_name)
 
@@ -201,8 +201,8 @@ class ProsperLogger(object):
 
         """
         ## Override defaults if required ##
-        log_level = self.config.get_option('LOGGER', 'debug_log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
+        log_level = self.config.get_option('LOGGING', 'debug_log_level', None, log_level)
+        log_format_name = self.config.get_option('LOGGING', 'debug_log_format', None, None)
         if log_format_name:
             log_format = ReportingFormats().str_to_format(log_format_name)
 
