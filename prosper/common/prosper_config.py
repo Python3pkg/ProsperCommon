@@ -56,7 +56,7 @@ class ProsperConfig(object):
             #TODO: force filepaths to abspaths?
         self.global_config, self.local_config = get_configs(
             config_filename,
-            local_filepath_override
+            self.local_config_filename
         )
 
     def get_option(
