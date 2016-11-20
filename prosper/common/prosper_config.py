@@ -78,13 +78,13 @@ class ProsperConfig(object):
         try:
             value = self.local_config.get(section_name, key_name)
         except Exception as error_msg:
-            logger.warning(
+            self.logger.warning(
                 '{0}.{1} not found in local config'.format(section_name, key_name)
             )
             try:
                 value = self.global_config.get(section_name, key_name)
             except Exception as error_msg:
-                logger.error(
+                self.logger.error(
                     '{0}.{1} not found in global config'.format(section_name, key_name)
                 )
                 raise KeyError('Could not find option in local/global config')

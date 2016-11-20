@@ -90,5 +90,35 @@ def test_config_file():
     if message:
         assert False, message #FIXME: this seems wrong
 
+def test_local_get():
+    """tries to fetch key from local config"""
+    TestConfigObj = prosper_config.ProsperConfig(
+        TEST_GLOBAL_CONFIG_PATH,
+        local_filepath_override=TEST_LOCAL_CONFIG_PATH
+    )
+
+    good_val = TestConfigObj.get('TEST', 'key2')
+    assert good_val == '100'
+
+def test_global_get():
+    """tries to fetch key from global config"""
+    TestConfigObj = prosper_config.ProsperConfig(
+        TEST_GLOBAL_CONFIG_PATH,
+        local_filepath_override=TEST_LOCAL_CONFIG_PATH
+    )
+
+    global_val = TestConfigObj.get('FAILS', 'shared_key')
+    assert global_val == '7'
+
+def test_fail_get():
+    """tries to fetch a key in neither local/global"""
+    TestConfigObj = prosper_config.ProsperConfig(
+        TEST_GLOBAL_CONFIG_PATH,
+        local_filepath_override=TEST_LOCAL_CONFIG_PATH
+    )
+
+    with pytest.raises(KeyError):
+        TestConfigObj.get('TEST', 'key4') #no key 4 = exception
+
 if __name__ == '__main__':
     print(test_config_file())
