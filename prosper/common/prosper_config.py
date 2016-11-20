@@ -59,6 +59,38 @@ class ProsperConfig(object):
             self.local_config_filename
         )
 
+    def get(
+        self,
+        section_name: str,
+        key_name: str
+    ):
+        """Replicate configparser.get() functionality
+
+        Args:
+            section_name (str): section name in config
+            key_name (str): key name in config.section_name
+
+        Returns:
+            (str): do not check defaults, only return local value
+
+        """
+        value = None
+        try:
+            value = self.local_config.get(section_name, key_name)
+        except Exception as error_msg:
+            logger.warning(
+                '{0}.{1} not found in local config'.format(section_name, key_name)
+            )
+            try:
+                value = self.global_config.get(section_name, key_name)
+            except Exception as error_msg:
+                logger.error(
+                    '{0}.{1} not found in global config'.format(section_name, key_name)
+                )
+                raise KeyError('Could not find option in local/global config')
+
+        return value
+
     def get_option(
             self,
             section_name: str,
