@@ -73,19 +73,20 @@ setup(
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/EVEprosper/ProsperCommon',
     download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v0.2.1',
-    version='0.3.3',
+    version='0.3.2a5',
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
     ],
     keywords='prosper eveonline api CREST',
     packages=hack_find_packages('prosper'),
-    data_files=[
-        #Can't use data_files with gemfury upload (need `bdist_wheel`)
-        #TODO: license + README
-        #('test', include_all_subfiles('test')),
-        #('docs', include_all_subfiles('docs'))
-    ],
+    include_package_data=True,
+    #data_files=[
+    #    #Can't use data_files with gemfury upload (need `bdist_wheel`)
+    #    #TODO: license + README
+    #    #('test', include_all_subfiles('test')),
+    #    #('docs', include_all_subfiles('docs'))
+    #],
     package_data={
         'prosper':[
             'common/common_config.cfg',
