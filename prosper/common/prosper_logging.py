@@ -28,6 +28,7 @@ import warnings
 
 import requests
 
+#import prosper.common as common
 import prosper.common.prosper_config as p_config
 import prosper.common.prosper_utilities as p_utils
 
@@ -41,8 +42,8 @@ COMMON_CONFIG = p_config.ProsperConfig(CONFIG_ABSPATH)
 DISCORD_MESSAGE_LIMIT = 2000
 DISCORD_PAD_SIZE = 100
 
-#DEFAULT_LOGGER = logging.getLogger('NULL')
-#DEFAULT_LOGGER.addHandler(logging.NullHandler())
+DEFAULT_LOGGER = logging.getLogger('NULL')
+DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
 class ReportingFormats:
     """Enum for storing handy log formats"""

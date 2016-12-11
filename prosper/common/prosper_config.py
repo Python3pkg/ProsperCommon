@@ -9,11 +9,13 @@ import configparser
 from configparser import ExtendedInterpolation
 import warnings
 import logging
-
-HERE = path.abspath(path.dirname(__file__))
+#import prosper.common.prosper_logging as p_logging
 
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
+#DEFAULT_LOGGER = p_logging.DEFAULT_LOGGER
+
+HERE = path.abspath(path.dirname(__file__))
 
 class ProsperConfig(object):
     """configuration handler for all prosper projects
