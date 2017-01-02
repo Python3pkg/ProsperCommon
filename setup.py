@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-
+__version__ = '0.3.5a0'
 def hack_find_packages(include_str):
     """patches setuptools.find_packages issue
 
@@ -72,8 +72,8 @@ setup(
     author='John Purcell',
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/EVEprosper/ProsperCommon',
-    download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v0.2.1',
-    version='0.3.4',
+    download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v' + __version__,
+    version=__version__,
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
