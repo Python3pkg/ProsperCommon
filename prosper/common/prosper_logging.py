@@ -116,7 +116,12 @@ class ProsperLogger(object):
         for handle in self.log_handlers:
             try:
                 handle.close()
-            except Exception:
+            except Exception:   #pragma: no cover
+                warnings.warn(
+                    'WARNING: unable to close logging handle',
+                    RuntimeWarning
+                )
+                #TODO:testable?
                 pass #do not crash if can't close handle
 
     def configure_default_logger(
@@ -291,7 +296,8 @@ def test_logpath(log_path, debug_mode=False):
     if not path.exists(log_path):
         try:
             makedirs(log_path, exist_ok=True)
-        except PermissionError as err_permission:
+        except PermissionError as err_permission:   #pragma: no cover
+            #TODO: testable?
             #UNABLE TO CREATE LOG PATH
             warning_msg = (
                 'Unable to create logging path.  Defaulting to \'.\'' +
@@ -307,7 +313,8 @@ def test_logpath(log_path, debug_mode=False):
             raise err_msg
 
     ## Make sure logger can write to path ##
-    if not access(log_path, W_OK):
+    if not access(log_path, W_OK):  #pragma: no cover
+        #TODO: testable?
         #UNABLE TO WRITE TO LOG PATH
         warning_msg = (
             'Lacking write permissions to path.  Defaulting to \'.\'' +
@@ -328,7 +335,7 @@ def create_logger(
         log_path,
         config_obj = None,
         log_level_override = ''
-):
+):   #pragma: no cover
     """DEPRECATED: classic v1 logger.  Obsolete by v0.3.0"""
     warnings.warn(
         'create_logger replaced with ProsperLogger object',
@@ -489,7 +496,7 @@ class HackyDiscordHandler(logging.Handler):
         if self.alert_recipient:
             self.alert_length = len(self.alert_recipient)
 
-    def emit(self, record):
+    def emit(self, record): # pragma: no cover
         """required classmethod for logging to execute logging message"""
         log_msg = self.format(record)
         if len(log_msg) + self.alert_length > DISCORD_MESSAGE_LIMIT:
@@ -523,7 +530,8 @@ class HackyDiscordHandler(logging.Handler):
                 headers=header,
                 json=payload
             )
-        except Exception as error_msg:
+        except Exception as error_msg:  # pragma: no cover
+            #TODO: testable?
             warning_msg = (
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
                 '\r\texception={0}'.format(error_msg) +
@@ -535,6 +543,7 @@ class HackyDiscordHandler(logging.Handler):
             )
     def test(self, message):
         """testing hook for exercising webhook directly"""
+        #TODO: remove and just use send_msg_to_webhook?
         try:
             self.send_msg_to_webhook(message)
         except Exception as error_msg:
