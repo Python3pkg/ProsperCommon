@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.3.5a0'
+__version__ = '0.3.6'
 def hack_find_packages(include_str):
     """patches setuptools.find_packages issue
 
@@ -53,7 +53,10 @@ class PyTest(TestCommand):
 
     def initialize_options(self):
         TestCommand.initialize_options(self)
-        self.pytest_args = ['test']    #load defaults here
+        self.pytest_args = [
+            'test'
+            '--cov=prosper/common'
+        ]    #load defaults here
 
     def run_tests(self):
         import shlex
@@ -99,7 +102,8 @@ setup(
     ],
     tests_require=[
         'pytest==3.0.3',
-        'testfixtures==4.12.0'
+        'testfixtures==4.12.0',
+        'pytest_cov==2.4.0'
     ],
     cmdclass={
         'test':PyTest

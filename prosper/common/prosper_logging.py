@@ -25,6 +25,7 @@ from os import path, makedirs, access, W_OK#, R_OK
 import logging
 from logging.handlers import TimedRotatingFileHandler
 import warnings
+from enum import Enum
 
 import requests
 
@@ -45,31 +46,11 @@ DISCORD_PAD_SIZE = 100
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
-class ReportingFormats:
+class ReportingFormats(Enum):
     """Enum for storing handy log formats"""
     DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
     PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
     STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
-
-    def str_to_format(self, format_name):
-        """parse a string to enum.  For loading from config
-
-        Args:
-            format_name (str): name of an enum format
-
-        Returns:
-            str: ReportingFormats enum for requested level
-
-        """
-        format_name = format_name.upper()
-        if   format_name == 'DEFAULT':
-            return self.DEFAULT
-        elif format_name == 'PRETTY_PRINT':
-            return self.PRETTY_PRINT
-        elif format_name == 'STDOUT':
-            return self.STDOUT
-        else:
-            return self.DEFAULT
 
 class ProsperLogger(object):
     """One logger to rule them all.  Build the right logger for your script in a few easy steps
@@ -143,7 +124,7 @@ class ProsperLogger(object):
             log_freq=None,
             log_total=None,
             log_level=None,
-            log_format=ReportingFormats().DEFAULT,
+            log_format=ReportingFormats.DEFAULT.value,
             debug_mode=_debug_mode
     ):
         """default logger that every Prosper script should use!!
@@ -162,7 +143,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGING', 'log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats().str_to_format(log_format_name)
+            log_format = ReportingFormats(log_format_name)
 
         ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
@@ -187,7 +168,7 @@ class ProsperLogger(object):
     def configure_debug_logger(
             self,
             log_level='DEBUG',
-            log_format=ReportingFormats().STDOUT,
+            log_format=ReportingFormats.STDOUT.value,
             debug_mode=_debug_mode
     ):
         """debug logger for stdout messages.  Replacement for print()
@@ -205,7 +186,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'debug_log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGING', 'debug_log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats().str_to_format(log_format_name)
+            log_format = ReportingFormats(log_format_name)
 
         ## Attach handlers/formatter ##
         formatter = logging.Formatter(log_format)
@@ -228,7 +209,7 @@ class ProsperLogger(object):
             discord_webhook=None,
             discord_recipient=None,
             log_level='ERROR',
-            log_format=ReportingFormats().PRETTY_PRINT,
+            log_format=ReportingFormats.PRETTY_PRINT.value,
             debug_mode=_debug_mode
     ):
         """logger for sending messages to Discord.  Easy way to alert humans of issues
@@ -251,7 +232,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'discord_log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats().str_to_format(log_format_name)
+            log_format = ReportingFormats(log_format_name)
 
         ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:
