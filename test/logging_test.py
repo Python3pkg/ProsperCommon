@@ -262,40 +262,40 @@ def test_discord_logger(config=TEST_CONFIG):
 def test_bad_init():
     """test validation for prosper_config.ProsperConfig"""
     #NOTE: prosper_logging:88
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_handle_str():
     """test validation for ProsperLogger.__str__"""
     #NOTE: prosper_logging:112
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_discordwebhook_class():
     """validate DiscordWebhook behavior"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_pathmaking():
     """validate test_logpath can makedirs"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_pathmaking_fail_makedirs():
     """validate failure behavior when making paths"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_pathmaking_fail_writeaccess():
     """check W_OK behavior when testing logpath"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
-    pass
+    pytest.skip('NOT IMPLEMENTED')
 
 if __name__ == '__main__':
     test_rotating_file_handle()
