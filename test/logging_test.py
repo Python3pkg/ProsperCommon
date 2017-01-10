@@ -228,6 +228,9 @@ REQUEST_NEW_CONNECTION = TEST_CONFIG.get_option('TEST', 'request_new_connection'
 REQUEST_POST_ENDPOINT  = TEST_CONFIG.get_option('TEST', 'request_POST_endpoint', None)
 def test_discord_logger(config=TEST_CONFIG):
     """Execute LogCapture on Discord logger object"""
+    if not WEBHOOK: #FIXME: commenting doesn't work in config file?
+        pytest.skip('discord_webhook is blank')
+
     test_logname = 'discord_logger'
     log_builder = prosper_logging.ProsperLogger(
         test_logname,
@@ -240,7 +243,7 @@ def test_discord_logger(config=TEST_CONFIG):
     log_capture = helper_log_messages(test_logger)
 
     discord_helper = prosper_logging.DiscordWebhook()
-    discord_helper.webhook(WEBHOOK)
+    discord_helper.webhook(WEBHOOK) #TODO: add blank-webhook test
 
     request_POST_endpoint = REQUEST_POST_ENDPOINT.\
         format(
