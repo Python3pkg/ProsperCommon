@@ -56,9 +56,7 @@ class PyTest(TestCommand):
         self.pytest_args = [
             'test',
             '--cov=prosper/common',
-            '--cov-report=term-missing',
-            '-v',
-            '-rxs' 
+            '--cov-report=term-missing'
         ]    #load defaults here
 
     def run_tests(self):
