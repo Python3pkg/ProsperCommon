@@ -6,6 +6,8 @@ from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
 __version__ = '0.3.6'
+__project_name__ = 'common'
+
 def hack_find_packages(include_str):
     """patches setuptools.find_packages issue
 
@@ -55,7 +57,7 @@ class PyTest(TestCommand):
         TestCommand.initialize_options(self)
         self.pytest_args = [
             'test',
-            '--cov=prosper/common',
+            '--cov=prosper/' + __project_name__,
             '--cov-report=term-missing'
         ]    #load defaults here
 
@@ -98,13 +100,13 @@ setup(
         ]
     },
     install_requires=[
-        'requests==2.11.1',
+        'requests>=2.12.0',
         #TODO: pandas/numpy/matplotlib requirements
     ],
     tests_require=[
-        'pytest==3.0.3',
-        'testfixtures==4.12.0',
-        'pytest_cov==2.4.0'
+        'pytest>=3.0.0',
+        'testfixtures>=4.12.0',
+        'pytest_cov>=2.4.0'
     ],
     cmdclass={
         'test':PyTest

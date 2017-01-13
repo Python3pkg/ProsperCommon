@@ -4,8 +4,7 @@ Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
-from os import path, listdir, remove, rmdir
-import configparser
+from os import path, listdir, remove, makedirs, rmdirimport configparser
 import logging
 from datetime import datetime
 
@@ -56,6 +55,7 @@ def helper_log_messages(
 
 ## TEST0: must clean up log directory for tests to be best ##
 LOG_PATH = TEST_CONFIG.get_option('LOGGING', 'log_path', None)
+makedirs(LOG_PATH, exist_ok=True)
 def test_cleanup_log_directory(
         log_builder_obj=None,
         config=TEST_CONFIG
@@ -254,10 +254,10 @@ def test_discord_logger(config=TEST_CONFIG):
     log_capture.check(
         (test_logname, 'INFO', 'prosper.common.prosper_logging TEST --INFO--'),
         (test_logname, 'WARNING', 'prosper.common.prosper_logging TEST --WARNING--'),
-        (REQUEST_LOGNAME, 'INFO', REQUEST_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', REQUEST_NEW_CONNECTION),
         (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
         (test_logname, 'ERROR', 'prosper.common.prosper_logging TEST --ERROR--'),
-        (REQUEST_LOGNAME, 'INFO', REQUEST_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', REQUEST_NEW_CONNECTION),
         (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
     )
