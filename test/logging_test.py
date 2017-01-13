@@ -304,10 +304,8 @@ def test_log_format_name():
     ).get_logger()
 
     format_actual = prosper_logging.ReportingFormats[test_format].value
-    print(format_actual)
     result = False
-    for fmt in [h.formatter._fmt for h in logger.handlers]:
-        print(fmt)
+    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
         result = result or fmt == format_actual
 
     assert result
