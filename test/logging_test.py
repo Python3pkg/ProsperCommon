@@ -4,7 +4,8 @@ Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
-from os import path, listdir, remove, makedirs, rmdirimport configparser
+from os import path, listdir, remove, makedirs, rmdir
+import configparser
 import logging
 from datetime import datetime
 
@@ -288,29 +289,37 @@ def test_handle_str(config=TEST_CONFIG):
     
     assert min_log_level in log_builder.__str__()
 
+def logger_handler_has_format(logger, expected_format):
+    result = False
+    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
+        result = result or fmt == expected_format
+
+    return result
+
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
     test_format = 'STDOUT'
+    format_actual = prosper_logging.ReportingFormats[test_format].value
+    test_file = 'test/test_alt_format.cfg'
 
-    builder = prosper_config.ProsperConfigBuilder(file_name='test_config.cfg')       
-    builder.add_entry('LOGGING', 'log_format', test_format)
-    config = builder.build()
-
-    test_logname = 'default_logger'
-    logger = prosper_logging.ProsperLogger(
+    test_logname = 'test_logger'
+    logger_builder = prosper_logging.ProsperLogger(
         test_logname,
         LOG_PATH,
-        config_obj=config
-    ).get_logger()
+        config_obj=prosper_config.ProsperConfig(test_file)
+    )
 
-    format_actual = prosper_logging.ReportingFormats[test_format].value
-    result = False
-    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
-        result = result or fmt == format_actual
+    logger_builder.configure_default_logger()
+    logger = logger_builder.get_logger()
+    assert logger_handler_has_format(logger, format_actual)
 
-    assert result
+    logger_builder.configure_debug_logger()
+    logger = logger_builder.get_logger()
+    assert logger_handler_has_format(logger, format_actual)
 
-    remove(builder.effective_path)
+    logger_builder.configure_discord_logger()
+    logger = logger_builder.get_logger()
+    assert logger_handler_has_format(logger, format_actual)
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""

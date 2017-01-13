@@ -126,9 +126,9 @@ class ProsperLogger(object):
 
     def configure_default_logger(
             self,
-            log_freq=None,
-            log_total=None,
-            log_level=None,
+            log_freq='midnight',
+            log_total=30,
+            log_level='INFO',
             log_format=ReportingFormats.DEFAULT.value,
             debug_mode=_debug_mode
     ):
@@ -237,7 +237,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'discord_log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats(log_format_name)
+            log_format = ReportingFormats[log_format_name].value
 
         ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:
