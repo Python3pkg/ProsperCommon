@@ -4,7 +4,7 @@ Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
-from os import path, listdir, remove
+from os import path, listdir, remove, makedirs
 import configparser
 import logging
 from datetime import datetime
@@ -56,6 +56,7 @@ def helper_log_messages(
 
 ## TEST0: must clean up log directory for tests to be best ##
 LOG_PATH = TEST_CONFIG.get_option('LOGGING', 'log_path', None)
+makedirs(LOG_PATH, exist_ok=True)
 def test_cleanup_log_directory(
         log_builder_obj=None,
         config=TEST_CONFIG
