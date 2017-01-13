@@ -258,3 +258,27 @@ def get_local_config_filepath(
         real_config_filepath = config_filepath
 
     return real_config_filepath
+
+class ProsperConfigBuilder(object):
+
+    def __init__(self, directory='.', file_name='config.cfg'):
+        self.effective_path = path.join(directory, file_name)
+        self.dict = dict()
+
+    def add_entry(self, section_name, entry_key, entry_value):
+        if not section_name in self.dict:
+            self.dict[section_name] = dict()
+
+        self.dict[section_name][entry_key] = entry_value
+
+    def build(self):
+        if path.exists(self.effective_path):
+            raise FileExistsError
+            
+        with open(self.effective_path, mode='w') as file:
+            for section in self.dict:
+                file.write('[{0}]\n'.format(section))
+                for key in self.dict[section]:
+                    file.write('\t{0} = {1}'.format(key, self.dict[section][key]))
+
+        return ProsperConfig(self.effective_path)

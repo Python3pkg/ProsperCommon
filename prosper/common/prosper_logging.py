@@ -148,7 +148,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGING', 'log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats(log_format_name)
+            log_format = ReportingFormats[log_format_name].value
 
         ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
@@ -191,7 +191,7 @@ class ProsperLogger(object):
         log_level = self.config.get_option('LOGGING', 'debug_log_level', None, log_level)
         log_format_name = self.config.get_option('LOGGING', 'debug_log_format', None, None)
         if log_format_name:
-            log_format = ReportingFormats(log_format_name)
+            log_format = ReportingFormats[log_format_name].value
 
         ## Attach handlers/formatter ##
         formatter = logging.Formatter(log_format)

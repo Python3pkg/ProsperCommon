@@ -290,11 +290,29 @@ def test_handle_str(config=TEST_CONFIG):
 
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_format = 'STDOUT'
 
-def test_discordwebhook_class():
-    """validate DiscordWebhook behavior"""
-    pytest.skip('NOT IMPLEMENTED')
+    builder = prosper_config.ProsperConfigBuilder(file_name='test_config.cfg')       
+    builder.add_entry('LOGGING', 'log_format', test_format)
+    config = builder.build()
+
+    test_logname = 'default_logger'
+    logger = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    ).get_logger()
+
+    format_actual = prosper_logging.ReportingFormats[test_format].value
+    print(format_actual)
+    result = False
+    for fmt in [h.formatter._fmt for h in logger.handlers]:
+        print(fmt)
+        result = result or fmt == format_actual
+
+    assert result
+
+    remove(builder.effective_path)
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""
@@ -323,6 +341,10 @@ def test_pathmaking_fail_makedirs():
 
 def test_pathmaking_fail_writeaccess():
     """check W_OK behavior when testing logpath"""
+    pytest.skip('NOT IMPLEMENTED')
+
+def test_discordwebhook_class():
+    """validate DiscordWebhook behavior"""
     pytest.skip('NOT IMPLEMENTED')
 
 def test_discord_logginghook():
