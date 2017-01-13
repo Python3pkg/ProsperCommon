@@ -4,7 +4,7 @@ Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
-from os import path, listdir, remove
+from os import path, listdir, remove, rmdir
 import configparser
 import logging
 from datetime import datetime
@@ -311,10 +311,10 @@ def test_pathmaking():
     """validate test_logpath can makedirs"""
     test_path = 'test mkdir folder'
 
-    actual = test_logpath(test_path)
+    actual = prosper_logging.test_logpath(test_path)
     assert actual == test_path #Test if the returned path is the one we wanted
     assert path.exists(test_path)
-    rmdir(log_path) #If here, we know dir exists
+    rmdir(test_path) #If here, we know dir exists
 
 #seems like programmatically creating a non-accessable directory uses platform specific libraries.
 def test_pathmaking_fail_makedirs():
