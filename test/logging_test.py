@@ -254,10 +254,10 @@ def test_discord_logger(config=TEST_CONFIG):
     log_capture.check(
         (test_logname, 'INFO', 'prosper.common.prosper_logging TEST --INFO--'),
         (test_logname, 'WARNING', 'prosper.common.prosper_logging TEST --WARNING--'),
-        (REQUEST_LOGNAME, 'INFO', REQUEST_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', REQUEST_NEW_CONNECTION),
         (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
         (test_logname, 'ERROR', 'prosper.common.prosper_logging TEST --ERROR--'),
-        (REQUEST_LOGNAME, 'INFO', REQUEST_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', REQUEST_NEW_CONNECTION),
         (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
     )

@@ -100,7 +100,7 @@ setup(
         ]
     },
     install_requires=[
-        'requests>=2.11.0',
+        'requests>=2.12.0',
         #TODO: pandas/numpy/matplotlib requirements
     ],
     tests_require=[
