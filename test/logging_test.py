@@ -264,13 +264,29 @@ def test_discord_logger(config=TEST_CONFIG):
 
 def test_bad_init():
     """test validation for prosper_config.ProsperConfig"""
-    #NOTE: prosper_logging:88
-    pytest.skip('NOT IMPLEMENTED')
+    test_logname = 'exceptional_logger'
+    with pytest.raises(TypeError):
+        prosper_logging.ProsperLogger(
+            test_logname,
+            LOG_PATH,
+            None #<-- offending argument
+        )
 
-def test_handle_str():
+@pytest.mark.skip(reason='Test failing because of bug, see test source.')
+def test_handle_str(config=TEST_CONFIG):
     """test validation for ProsperLogger.__str__"""
-    #NOTE: prosper_logging:112
-    pytest.skip('NOT IMPLEMENTED')
+    test_logname = 'str_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+
+    min_log_level = 'WARNING'
+    log_builder.configure_default_logger(log_level=min_log_level) #Looks like there is a bug where this parametr is always overwritten, and thus useless
+    string = log_builder.__str__()
+    
+    assert min_log_level in log_builder.__str__()
 
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
@@ -282,11 +298,23 @@ def test_discordwebhook_class():
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_paths = [
+        "logs",
+        "bloo",
+        "some string with spaces"
+    ]
+
+    debug_path = "."
+    assert all(prosper_logging.test_logpath(path, debug_mode=True) == debug_path for path in test_paths)
 
 def test_pathmaking():
     """validate test_logpath can makedirs"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_path = 'test mkdir folder'
+
+    actual = test_logpath(test_path)
+    assert actual == test_path #Test if the returned path is the one we wanted
+    assert path.exists(test_path)
+    rmdir(log_path) #If here, we know dir exists
 
 def test_pathmaking_fail_makedirs():
     """validate failure behavior when making paths"""
