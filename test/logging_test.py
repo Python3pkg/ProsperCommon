@@ -283,7 +283,7 @@ def test_handle_str(config=TEST_CONFIG):
     )
 
     min_log_level = 'WARNING'
-    log_builder.configure_default_logger(log_level=min_log_level) #Looks like there is a bug where this parametr is always overwritten, and thus useless
+    log_builder.configure_default_logger(log_level=min_log_level) #Looks like there is a bug where this parametr is always overwritten, and thus doesn't show up in the __str__ output
     string = log_builder.__str__()
     
     assert min_log_level in log_builder.__str__()
@@ -316,6 +316,7 @@ def test_pathmaking():
     assert path.exists(test_path)
     rmdir(log_path) #If here, we know dir exists
 
+#seems like programmatically creating a non-accessable directory uses platform specific libraries.
 def test_pathmaking_fail_makedirs():
     """validate failure behavior when making paths"""
     pytest.skip('NOT IMPLEMENTED')
