@@ -124,6 +124,16 @@ class ProsperLogger(object):
                 #TODO:testable?
                 pass #do not crash if can't close handle
 
+    def _configure_common(self, prefix, fallback_level, fallback_format):
+        log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
+        log_format_name = self.config.get_option('LOGGING', prefix + 'log_format', None, None)
+        if log_format_name:
+            log_format = ReportingFormats[log_format_name].value
+        else:
+            log_format = fallback_format
+
+        return log_level, log_format
+
     def configure_default_logger(
             self,
             log_freq='midnight',
@@ -145,10 +155,7 @@ class ProsperLogger(object):
         ## Override defaults if required ##
         log_freq  = self.config.get_option('LOGGING', 'log_freq', None, log_freq)
         log_total = self.config.get_option('LOGGING', 'log_total', None, log_total)
-        log_level = self.config.get_option('LOGGING', 'log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGING', 'log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats[log_format_name].value
+        log_level, log_format = self._configure_common('', log_level, log_format)
 
         ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
@@ -188,10 +195,7 @@ class ProsperLogger(object):
 
         """
         ## Override defaults if required ##
-        log_level = self.config.get_option('LOGGING', 'debug_log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGING', 'debug_log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats[log_format_name].value
+        log_level, log_format = self._configure_common('debug_', log_level, log_format)
 
         ## Attach handlers/formatter ##
         formatter = logging.Formatter(log_format)
@@ -234,10 +238,7 @@ class ProsperLogger(object):
         ## Override defaults if required ##
         discord_webhook = self.config.get_option('LOGGING', 'discord_webhook', None, discord_webhook)
         discord_recipient = self.config.get_option('LOGGING', 'discord_recipient', None, discord_recipient)
-        log_level = self.config.get_option('LOGGING', 'discord_log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats[log_format_name].value
+        log_level, log_format = self._configure_common('discord_', log_level, log_format)
 
         ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:

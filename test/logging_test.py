@@ -289,13 +289,6 @@ def test_handle_str(config=TEST_CONFIG):
     
     assert min_log_level in log_builder.__str__()
 
-def logger_handler_has_format(logger, expected_format):
-    result = False
-    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
-        result = result or fmt == expected_format
-
-    return result
-
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
     test_format = 'STDOUT'
@@ -311,15 +304,12 @@ def test_log_format_name():
 
     logger_builder.configure_default_logger()
     logger = logger_builder.get_logger()
-    assert logger_handler_has_format(logger, format_actual)
 
-    logger_builder.configure_debug_logger()
-    logger = logger_builder.get_logger()
-    assert logger_handler_has_format(logger, format_actual)
+    result = False
+    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
+        result = result or fmt == format_actual
 
-    logger_builder.configure_discord_logger()
-    logger = logger_builder.get_logger()
-    assert logger_handler_has_format(logger, format_actual)
+    assert result
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""
