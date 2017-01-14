@@ -129,7 +129,7 @@ class ProsperLogger(object):
         """commom configuration code
         
         Args:
-            prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Ahcky, add separate secitions for each logger config?
+            prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Hacky, add separate secitions for each logger config?
             fallback_level (str): Fallback/minimum log level, for if config does not have one.
             fallback_format (str): Fallback format for if it's not in the config.
             handler_name (str): Handler used in debug messages.

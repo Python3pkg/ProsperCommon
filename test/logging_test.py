@@ -365,7 +365,7 @@ def test_discordwebhook_webhook_url():
     discord_webhook = prosper_logging.DiscordWebhook()
     
     with pytest.raises(Exception):
-        discord_webhook.webook(None)
+        discord_webhook.webhook(None)
 
     with pytest.raises(Exception):
         discord_webhook.webhook(test_url_faulty)    
@@ -380,9 +380,24 @@ def test_discordwebhook_str():
 
     assert object.__str__(webhook) != webhook.__str__()
 
+def test_discordwebhook_get_webhook_info():
+    """test get_webhook_method"""
+
+    webhook = prosper_logging.DiscordWebhook()
+
+    with pytest.raises(RuntimeError): #Because we have not set serverid and apikey yet
+        webhook.get_webhook_info()
+
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_alert_recipient = 'some_user'
+
+    webhook = prosper_logging.DiscordWebhook()
+    handler = prosper_logging.HackyDiscordHandler(webhook, test_alert_recipient)
+
+    # validate that parameters are actually used
+    assert handler.api_url == webhook.webhook_url
+    assert handler.alert_recipient == test_alert_recipient
 
 #seems like programmatically creating a non-accessable directory uses platform specific libraries.
 def test_pathmaking_fail_makedirs():
