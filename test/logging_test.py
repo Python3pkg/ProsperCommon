@@ -329,15 +329,6 @@ def test_pathmaking():
     assert path.exists(test_path)
     rmdir(test_path) #If here, we know dir exists
 
-#seems like programmatically creating a non-accessable directory uses platform specific libraries.
-def test_pathmaking_fail_makedirs():
-    """validate failure behavior when making paths"""
-    pytest.skip('NOT IMPLEMENTED')
-
-def test_pathmaking_fail_writeaccess():
-    """check W_OK behavior when testing logpath"""
-    pytest.skip('NOT IMPLEMENTED')
-
 def test_discordwebhook_api_keys():
     """validate that we can query after setting serverid and api key"""
     test_serverid = 1234
@@ -356,13 +347,16 @@ def test_discordwebhook_webhook_url():
     test_url_faulty = 'some string'
     test_url_correct = base_url + str(test_serverid) + '/' + test_apikey
 
-    webhook = prosper_logging.DiscordWebhook()
+    discord_webhook = prosper_logging.DiscordWebhook()
     
     with pytest.raises(Exception):
-        webhook.webhook(test_url_faulty)
+        discord_webhook.webook(None)
 
-    webhook.webhook(test_url_correct)
-    assert webhook
+    with pytest.raises(Exception):
+        discord_webhook.webhook(test_url_faulty)    
+
+    discord_webhook.webhook(test_url_correct)
+    assert discord_webhook
 
 def test_discordwebhook_str():
     """test that there is some str implementation"""
@@ -373,6 +367,15 @@ def test_discordwebhook_str():
 
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
+    pytest.skip('NOT IMPLEMENTED')
+
+#seems like programmatically creating a non-accessable directory uses platform specific libraries.
+def test_pathmaking_fail_makedirs():
+    """validate failure behavior when making paths"""
+    pytest.skip('NOT IMPLEMENTED')
+
+def test_pathmaking_fail_writeaccess():
+    """check W_OK behavior when testing logpath"""
     pytest.skip('NOT IMPLEMENTED')
 
 if __name__ == '__main__':
