@@ -451,7 +451,7 @@ class DiscordWebhook(object):
         if not self.can_query:
             raise RuntimeError('webhook information not loaded, cannot query')
 
-        raise NotImplementedError('requests call to discord server for API info: TODO')
+        raise NotImplementedError('requests call to discord server for API info: TODO') # pragma: no cover
 
     def __bool__(self):
         return self.can_query
