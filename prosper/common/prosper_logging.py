@@ -117,12 +117,11 @@ class ProsperLogger(object):
         for handle in self.log_handlers:
             try:
                 handle.close()
-            except Exception:   #pragma: no cover
+            except Exception:
                 warnings.warn(
                     'WARNING: unable to close logging handle',
                     RuntimeWarning
                 )
-                #TODO:testable?
                 pass #do not crash if can't close handle
 
     def _configure_common(self, prefix, fallback_level, fallback_format, handler_name, handler):
@@ -285,7 +284,6 @@ def test_logpath(log_path, debug_mode=False):
             makedirs(log_path, exist_ok=True)
         except PermissionError as err_permission:
             print('excepted')
-            #TODO: testable?
             #UNABLE TO CREATE LOG PATH
             warning_msg = (
                 'Unable to create logging path.  Defaulting to \'.\'' +
@@ -300,7 +298,6 @@ def test_logpath(log_path, debug_mode=False):
 
     ## Make sure logger can write to path ##
     if not access(log_path, W_OK):
-        #TODO: testable?
         #UNABLE TO WRITE TO LOG PATH
         warning_msg = (
             'Lacking write permissions to path.  Defaulting to \'.\'' +
@@ -519,8 +516,7 @@ class HackyDiscordHandler(logging.Handler):
                 headers=header,
                 json=payload
             )
-        except Exception as error_msg:  # pragma: no cover
-            #TODO: testable?
+        except Exception as error_msg:
             warning_msg = (
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
                 '\r\texception={0}'.format(error_msg) +

@@ -11,7 +11,7 @@ from datetime import datetime
 from warnings import warn
 
 import pytest
-from mock import patch
+from mock import patch, Mock
 from testfixtures import LogCapture
 
 import prosper.common.prosper_logging as prosper_logging
@@ -417,6 +417,48 @@ def test_pathmaking_fail_writeaccess(warn, access):
     test_log_path = 'logs'
 
     ret = prosper_logging.test_logpath(test_log_path)
+
+    assert warn.called
+
+@patch('requests.post')
+def test_send_msg_to_webhook_success(post):
+    """verify that the handler is sending messages"""
+
+    webhook = prosper_logging.DiscordWebhook()
+    handler = prosper_logging.HackyDiscordHandler(webhook)
+
+    handler.send_msg_to_webhook('dummy')
+
+    assert post.called
+
+@patch('requests.post', side_effect=Exception)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_send_msg_to_webhook_faulty(warn, post):
+    """verify that the handler gives a warning on exception"""
+
+    webhook = prosper_logging.DiscordWebhook()
+    handler = prosper_logging.HackyDiscordHandler(webhook)
+
+    handler.send_msg_to_webhook('dummy')
+
+    assert warn.called
+
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_prosper_logger_close_handles(warn, config=TEST_CONFIG):
+    "test if warning is given when closing a handler exceptionlally"
+
+    fake_handler = logging.StreamHandler()
+    fake_handler.close = Mock(side_effect=Exception)
+
+    test_logname = 'test_logger'
+    logger_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+
+    logger_builder.log_handlers.append(fake_handler)
+    logger_builder.close_handles()
 
     assert warn.called
 
