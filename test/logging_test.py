@@ -263,6 +263,21 @@ def test_discord_logger(config=TEST_CONFIG):
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
     )
 
+def test_configure_common(config=TEST_CONFIG):
+    """test if minimal log level is used"""
+    test_logname = 'test_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+
+    min_log_level = 'WARNING'
+    log_builder.configure_default_logger(log_level=min_log_level)
+    logger = log_builder.get_logger()
+
+    assert logger.isEnabledFor(logging.getLevelName(min_log_level))
+
 def test_bad_init():
     """test validation for prosper_config.ProsperConfig"""
     test_logname = 'exceptional_logger'
