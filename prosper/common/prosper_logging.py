@@ -26,6 +26,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import warnings
 from enum import Enum
+import re
 
 import requests
 
@@ -127,10 +128,7 @@ class ProsperLogger(object):
     def _configure_common(self, prefix, fallback_level, fallback_format):
         log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
         log_format_name = self.config.get_option('LOGGING', prefix + 'log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats[log_format_name].value
-        else:
-            log_format = fallback_format
+        log_format = ReportingFormats[log_format_name].value if log_format_name else fallback_format
 
         return log_level, log_format
 
@@ -434,14 +432,17 @@ class DiscordWebhook(object):
             webhook_url (str): full webhook url given by Discord 'create webhook' func
 
         """
-        if webhook_url:
-            self.can_query = True
+        if not webhook_url:
+            raise Exception('none valid url')
+
+        matcher = re.match(self.__base_url + r"(\d+)/(\w+)", webhook_url)
+        if not matcher:
+            raise Exception('none valid url')
+
+        self.serverid = int(matcher.group(1))
+        self.api_key = matcher.group(2)
         self.webhook_url = webhook_url
-        #FIXME vv this is hacky as fuck
-        trunc_url = self.webhook_url.replace(self.__base_url, '')
-        id_list = trunc_url.split('/')
-        self.serverid = int(id_list[0])
-        self.api_key = id_list[1]
+        self.can_query = True
 
     def api_keys(self, serverid, api_key):
         """Load object with id/API pair
@@ -453,9 +454,9 @@ class DiscordWebhook(object):
         """
         if serverid and api_key:
             self.can_query = True
-        self.serverid = serverid
+        self.serverid = int(serverid)
         self.api_key = api_key
-        self.webhook_url = self.__base_url + self.serverid + '/' + self.api_key
+        self.webhook_url = self.__base_url + str(self.serverid) + '/' + self.api_key
 
 
     def get_webhook_info(self):

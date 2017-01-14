@@ -338,9 +338,38 @@ def test_pathmaking_fail_writeaccess():
     """check W_OK behavior when testing logpath"""
     pytest.skip('NOT IMPLEMENTED')
 
-def test_discordwebhook_class():
-    """validate DiscordWebhook behavior"""
-    pytest.skip('NOT IMPLEMENTED')
+def test_discordwebhook_api_keys():
+    """validate that we can query after setting serverid and api key"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
+
+    webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
+
+    assert webhook #using __bool__
+
+def test_discordwebhook_webhook_url():
+    """validate that we can query after setting serverid and api key"""
+    base_url = 'https://discordapp.com/api/webhooks/'
+    test_serverid = 1234
+    test_apikey = 'some_key'
+    test_url_faulty = 'some string'
+    test_url_correct = base_url + str(test_serverid) + '/' + test_apikey
+
+    webhook = prosper_logging.DiscordWebhook()
+    
+    with pytest.raises(Exception):
+        webhook.webhook(test_url_faulty)
+
+    webhook.webhook(test_url_correct)
+    assert webhook
+
+def test_discordwebhook_str():
+    """test that there is some str implementation"""
+
+    webhook = prosper_logging.DiscordWebhook()
+
+    assert object.__str__(webhook) != webhook.__str__()
 
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
