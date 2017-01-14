@@ -288,7 +288,6 @@ def test_bad_init():
             None #<-- offending argument
         )
 
-#@pytest.mark.skip(reason='Test failing because of bug, see test source.')
 def test_handle_str(config=TEST_CONFIG):
     """test validation for ProsperLogger.__str__"""
     test_logname = 'str_logger'
