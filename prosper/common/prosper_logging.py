@@ -417,6 +417,7 @@ class DiscordWebhook(object):
 
     """
     __base_url = 'https://discordapp.com/api/webhooks/'
+    __webhook_url_format = __base_url + r"(\d+)/(\w+)"
     def __init__(self):
         """DiscordWebhook initialization"""
         self.webhook_url = ''
@@ -433,11 +434,11 @@ class DiscordWebhook(object):
 
         """
         if not webhook_url:
-            raise Exception('none valid url')
+            raise Exception('Url can not be None')
 
-        matcher = re.match(self.__base_url + r"(\d+)/(\w+)", webhook_url)
+        matcher = re.match(self.__webhook_url_format, webhook_url)
         if not matcher:
-            raise Exception('none valid url')
+            raise Exception('Invalid url format, looking for: ' + self.__webhook_url_format)
 
         self.serverid = int(matcher.group(1))
         self.api_key = matcher.group(2)
