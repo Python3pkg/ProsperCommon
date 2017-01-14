@@ -283,7 +283,7 @@ def test_logpath(log_path, debug_mode=False):
     if not path.exists(log_path):
         try:
             makedirs(log_path, exist_ok=True)
-        except PermissionError as err_permission:   #pragma: no cover
+        except PermissionError as err_permission:
             print('excepted')
             #TODO: testable?
             #UNABLE TO CREATE LOG PATH
@@ -297,11 +297,9 @@ def test_logpath(log_path, debug_mode=False):
                 ResourceWarning
             )
             return '.'
-        except Exception as err_msg:
-            raise err_msg
 
     ## Make sure logger can write to path ##
-    if not access(log_path, W_OK):  #pragma: no cover
+    if not access(log_path, W_OK):
         #TODO: testable?
         #UNABLE TO WRITE TO LOG PATH
         warning_msg = (
