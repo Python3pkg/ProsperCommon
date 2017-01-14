@@ -8,8 +8,10 @@ from os import path, listdir, remove, makedirs, rmdir
 import configparser
 import logging
 from datetime import datetime
+from warnings import warn
 
 import pytest
+from mock import patch
 from testfixtures import LogCapture
 
 import prosper.common.prosper_logging as prosper_logging
@@ -398,14 +400,25 @@ def test_discord_logginghook():
     assert handler.api_url == webhook.webhook_url
     assert handler.alert_recipient == test_alert_recipient
 
-#seems like programmatically creating a non-accessable directory uses platform specific libraries.
-def test_pathmaking_fail_makedirs():
+@patch('prosper.common.prosper_logging.makedirs', side_effect=PermissionError)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_pathmaking_fail_makedirs(warn, makedirs):
     """validate failure behavior when making paths"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_log_path = 'test_folder delete this'
 
-def test_pathmaking_fail_writeaccess():
+    ret = prosper_logging.test_logpath(test_log_path)
+
+    assert warn.called
+
+@patch('prosper.common.prosper_logging.access', return_value=False)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_pathmaking_fail_writeaccess(warn, access):
     """check W_OK behavior when testing logpath"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_log_path = 'logs'
+
+    ret = prosper_logging.test_logpath(test_log_path)
+
+    assert warn.called
 
 if __name__ == '__main__':
     test_rotating_file_handle()

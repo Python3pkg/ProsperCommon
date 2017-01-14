@@ -284,6 +284,7 @@ def test_logpath(log_path, debug_mode=False):
         try:
             makedirs(log_path, exist_ok=True)
         except PermissionError as err_permission:   #pragma: no cover
+            print('excepted')
             #TODO: testable?
             #UNABLE TO CREATE LOG PATH
             warning_msg = (
@@ -305,8 +306,7 @@ def test_logpath(log_path, debug_mode=False):
         #UNABLE TO WRITE TO LOG PATH
         warning_msg = (
             'Lacking write permissions to path.  Defaulting to \'.\'' +
-            'log_path={0}'.format(log_path) +
-            'exception={0}'.format(err_permission)
+            'log_path={0}'.format(log_path)
         )
         warnings.warn(
             warning_msg,
