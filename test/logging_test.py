@@ -391,14 +391,25 @@ def test_discordwebhook_get_webhook_info():
 
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
     test_alert_recipient = 'some_user'
 
     webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
     handler = prosper_logging.HackyDiscordHandler(webhook, test_alert_recipient)
 
     # validate that parameters are actually used
-    assert handler.api_url == webhook.webhook_url
+    assert handler.webhook_obj == webhook
     assert handler.alert_recipient == test_alert_recipient
+
+def test_discord_logginghook_unconfigured():
+    """verify exception when webhook is unconfigured"""
+
+    webhook = prosper_logging.DiscordWebhook()
+    
+    with pytest.raises(Exception):
+        prosper_logging.HackyDiscordHandler(webhook)
 
 @patch('prosper.common.prosper_logging.makedirs', side_effect=PermissionError)
 @patch('prosper.common.prosper_logging.warnings.warn')
@@ -423,8 +434,11 @@ def test_pathmaking_fail_writeaccess(warn, access):
 @patch('requests.post')
 def test_send_msg_to_webhook_success(post):
     """verify that the handler is sending messages"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
 
     webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
     handler = prosper_logging.HackyDiscordHandler(webhook)
 
     handler.send_msg_to_webhook('dummy')
@@ -435,8 +449,11 @@ def test_send_msg_to_webhook_success(post):
 @patch('prosper.common.prosper_logging.warnings.warn')
 def test_send_msg_to_webhook_faulty(warn, post):
     """verify that the handler gives a warning on exception"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
 
     webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
     handler = prosper_logging.HackyDiscordHandler(webhook)
 
     handler.send_msg_to_webhook('dummy')

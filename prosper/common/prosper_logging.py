@@ -128,12 +128,14 @@ class ProsperLogger(object):
         """commom configuration code
         
         Args:
-            prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Hacky, add separate secitions for each logger config?
+            prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Hacky, add separate sections for each logger config?
             fallback_level (str): Fallback/minimum log level, for if config does not have one.
             fallback_format (str): Fallback format for if it's not in the config.
             handler_name (str): Handler used in debug messages.
             handler (str): The handler to configure and use.
+
         """
+        ## Retrieve settings from config ##
         log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
         if logging.getLevelName(log_level) < logging.getLevelName(fallback_level):
             log_level = fallback_level #  fallback is also the minimum
@@ -249,8 +251,8 @@ class ProsperLogger(object):
                     discord_recipient
                 )
                 self._configure_common('discord_', log_level, log_format, 'Discord', discord_handler)
-            except Exception as error_msg:
-                raise error_msg
+            except Exception as error_msg: #FIXME: remove this, if we're just re-throwing?
+                raise error_msg 
         else:
             warnings.warn(
                 'Unable to execute webhook',
@@ -423,10 +425,7 @@ class DiscordWebhook(object):
         if not matcher:
             raise Exception('Invalid url format, looking for: ' + self.__webhook_url_format)
 
-        self.serverid = int(matcher.group(1))
-        self.api_key = matcher.group(2)
-        self.webhook_url = webhook_url
-        self.can_query = True
+        self.api_keys(int(matcher.group(1)), matcher.group(2))
 
     def api_keys(self, serverid, api_key):
         """Load object with id/API pair
@@ -437,7 +436,7 @@ class DiscordWebhook(object):
 
         """
         if serverid and api_key:
-            self.can_query = True
+            self.can_query = True # Yes, we _are_ (will be) configured
         self.serverid = int(serverid)
         self.api_key = api_key
         self.webhook_url = self.__base_url + str(self.serverid) + '/' + self.api_key
@@ -476,7 +475,10 @@ class HackyDiscordHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
         self.webhook_obj = webhook_obj
-        self.api_url = self.webhook_obj.webhook_url
+        if not self.webhook_obj: # test if it's configured
+            raise Exception('Webhook not configured.')
+
+        self.api_url = webhook_obj.webhook_url
         self.alert_recipient = alert_recipient
         self.alert_length = 0
         if self.alert_recipient:
