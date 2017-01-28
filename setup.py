@@ -100,14 +100,14 @@ setup(
         ]
     },
     install_requires=[
-        'requests~=2.12.0',
+        'requests>=2.12.0'
         #TODO: pandas/numpy/matplotlib requirements
     ],
     tests_require=[
-        'pytest~=3.0.0',
-        'testfixtures~=4.12.0',
-        'pytest_cov~=2.4.0',
-        'mock~=2.0.0'
+        'pytest>=3.0.0',
+        'testfixtures>=4.12.0',
+        'pytest_cov>=2.4.0',
+        'mock>=2.0.0'
     ],
     cmdclass={
         'test':PyTest
