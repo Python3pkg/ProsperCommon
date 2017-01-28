@@ -124,7 +124,14 @@ class ProsperLogger(object):
                 )
                 pass #do not crash if can't close handle
 
-    def _configure_common(self, prefix, fallback_level, fallback_format, handler_name, handler):
+    def _configure_common(
+        self,
+        prefix,
+        fallback_level,
+        fallback_format,
+        handler_name,
+        handler
+    ):
         """commom configuration code
         
         Args:
@@ -137,17 +144,16 @@ class ProsperLogger(object):
         """
         ## Retrieve settings from config ##
         log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
-        if logging.getLevelName(log_level) < logging.getLevelName(fallback_level):
-            log_level = fallback_level #  fallback is also the minimum
-
         log_format_name = self.config.get_option('LOGGING', prefix + 'log_format', None, None)
         log_format = ReportingFormats[log_format_name].value if log_format_name else fallback_format
 
         ## Attach handlers/formatter ##
         formatter = logging.Formatter(log_format)
         handler.setFormatter(formatter)
-        self.logger.setLevel(log_level)
+        handler.setLevel(log_level)
         self.logger.addHandler(handler)
+        if not self.logger.isEnabledFor(logging.getLevelName(log_level)): # make sure logger level is not lower than handler level
+            self.logger.setLevel(log_level)
 
         ## Save info about handler created ##
         self.log_info.append(handler_name + ' @ ' + str(log_level))
@@ -285,7 +291,6 @@ def test_logpath(log_path, debug_mode=False):
         try:
             makedirs(log_path, exist_ok=True)
         except PermissionError as err_permission:
-            print('excepted')
             #UNABLE TO CREATE LOG PATH
             warning_msg = (
                 'Unable to create logging path.  Defaulting to \'.\'' +
@@ -402,7 +407,7 @@ class DiscordWebhook(object):
 
     """
     __base_url = 'https://discordapp.com/api/webhooks/'
-    __webhook_url_format = __base_url + r"(\d+)/(\w+)"
+    __webhook_url_format = __base_url + r"(\d+)/([\w-]+)"
     def __init__(self):
         """DiscordWebhook initialization"""
         self.webhook_url = ''
