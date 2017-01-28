@@ -125,12 +125,12 @@ class ProsperLogger(object):
                 pass #do not crash if can't close handle
 
     def _configure_common(
-        self,
-        prefix,
-        fallback_level,
-        fallback_format,
-        handler_name,
-        handler
+            self,
+            prefix,
+            fallback_level,
+            fallback_format,
+            handler_name,
+            handler
     ):
         """commom configuration code
         
