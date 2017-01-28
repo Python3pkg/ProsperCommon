@@ -359,7 +359,7 @@ def test_discordwebhook_webhook_url():
     """validate that we can query after setting serverid and api key"""
     base_url = 'https://discordapp.com/api/webhooks/'
     test_serverid = 1234
-    test_apikey = 'some_key'
+    test_apikey = 'some-key'
     test_url_faulty = 'some string'
     test_url_correct = base_url + str(test_serverid) + '/' + test_apikey
 
