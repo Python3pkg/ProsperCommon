@@ -26,6 +26,7 @@ import logging
 from logging.handlers import TimedRotatingFileHandler
 import warnings
 from enum import Enum
+import re
 
 import requests
 
@@ -116,19 +117,53 @@ class ProsperLogger(object):
         for handle in self.log_handlers:
             try:
                 handle.close()
-            except Exception:   #pragma: no cover
+            except Exception:
                 warnings.warn(
                     'WARNING: unable to close logging handle',
                     RuntimeWarning
                 )
-                #TODO:testable?
                 pass #do not crash if can't close handle
+
+    def _configure_common(
+            self,
+            prefix,
+            fallback_level,
+            fallback_format,
+            handler_name,
+            handler
+    ):
+        """commom configuration code
+        
+        Args:
+            prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Hacky, add separate sections for each logger config?
+            fallback_level (str): Fallback/minimum log level, for if config does not have one.
+            fallback_format (str): Fallback format for if it's not in the config.
+            handler_name (str): Handler used in debug messages.
+            handler (str): The handler to configure and use.
+
+        """
+        ## Retrieve settings from config ##
+        log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
+        log_format_name = self.config.get_option('LOGGING', prefix + 'log_format', None, None)
+        log_format = ReportingFormats[log_format_name].value if log_format_name else fallback_format
+
+        ## Attach handlers/formatter ##
+        formatter = logging.Formatter(log_format)
+        handler.setFormatter(formatter)
+        handler.setLevel(log_level)
+        self.logger.addHandler(handler)
+        if not self.logger.isEnabledFor(logging.getLevelName(log_level)): # make sure logger level is not lower than handler level
+            self.logger.setLevel(log_level)
+
+        ## Save info about handler created ##
+        self.log_info.append(handler_name + ' @ ' + str(log_level))
+        self.log_handlers.append(handler) 
 
     def configure_default_logger(
             self,
-            log_freq=None,
-            log_total=None,
-            log_level=None,
+            log_freq='midnight',
+            log_total=30,
+            log_level='INFO',
             log_format=ReportingFormats.DEFAULT.value,
             debug_mode=_debug_mode
     ):
@@ -144,11 +179,7 @@ class ProsperLogger(object):
         """
         ## Override defaults if required ##
         log_freq  = self.config.get_option('LOGGING', 'log_freq', None, log_freq)
-        log_total = self.config.get_option('LOGGING', 'log_total', None, log_total)
-        log_level = self.config.get_option('LOGGING', 'log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGING', 'log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats(log_format_name)
+        log_total = self.config.get_option('LOGGING', 'log_total', None, log_total)        
 
         ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
@@ -157,18 +188,10 @@ class ProsperLogger(object):
             log_abspath,
             when=log_freq,
             interval=1,
-            backupCount=int(log_total) #FIXME: defaults
+            backupCount=int(log_total)
         )
 
-        ## Attach default handlers/formatter ##
-        formatter = logging.Formatter(log_format)
-        general_handler.setFormatter(formatter)
-        self.logger.setLevel(log_level)
-        self.logger.addHandler(general_handler)
-
-        ## Save info about handler created ##
-        self.log_info.append('default @ ' + str(log_level))
-        self.log_handlers.append(general_handler)
+        self._configure_common('', log_level, log_format, 'default', general_handler)
 
     def configure_debug_logger(
             self,
@@ -187,27 +210,8 @@ class ProsperLogger(object):
             debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
 
         """
-        ## Override defaults if required ##
-        log_level = self.config.get_option('LOGGING', 'debug_log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGING', 'debug_log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats(log_format_name)
 
-        ## Attach handlers/formatter ##
-        formatter = logging.Formatter(log_format)
-        debug_handler = logging.StreamHandler()
-        debug_handler.setFormatter(formatter)
-        debug_handler.setLevel(log_level)
-
-        ## Extend default Logger.setLevel if required ##
-        log_level_value = logging.getLevelName(log_level)
-        self.logger.addHandler(debug_handler)
-        if not self.logger.isEnabledFor(log_level_value):
-            self.logger.setLevel(log_level) #override log_level min if less than current min
-
-        ## Save info about handler created ##
-        self.log_info.append('debug @ ' + str(log_level))
-        self.log_handlers.append(debug_handler)
+        self._configure_common('debug_', log_level, log_format, 'Debug', logging.StreamHandler())
 
     def configure_discord_logger(
             self,
@@ -234,10 +238,6 @@ class ProsperLogger(object):
         ## Override defaults if required ##
         discord_webhook = self.config.get_option('LOGGING', 'discord_webhook', None, discord_webhook)
         discord_recipient = self.config.get_option('LOGGING', 'discord_recipient', None, discord_recipient)
-        log_level = self.config.get_option('LOGGING', 'discord_log_level', None, log_level)
-        log_format_name = self.config.get_option('LOGGER', 'debug_log_format', None, None)
-        if log_format_name:
-            log_format = ReportingFormats(log_format_name)
 
         ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:
@@ -256,15 +256,9 @@ class ProsperLogger(object):
                     discord_obj,
                     discord_recipient
                 )
-                discord_format = logging.Formatter(log_format)
-                discord_handler.setFormatter(discord_format)
-                discord_handler.setLevel(log_level)
-                self.logger.addHandler(discord_handler)
-            except Exception as error_msg:
-                raise error_msg
-
-            self.log_info.append('discord @ ' + str(log_level))
-            self.log_handlers.append(discord_handler)
+                self._configure_common('discord_', log_level, log_format, 'Discord', discord_handler)
+            except Exception as error_msg: #FIXME: remove this, if we're just re-throwing?
+                raise error_msg 
         else:
             warnings.warn(
                 'Unable to execute webhook',
@@ -296,8 +290,7 @@ def test_logpath(log_path, debug_mode=False):
     if not path.exists(log_path):
         try:
             makedirs(log_path, exist_ok=True)
-        except PermissionError as err_permission:   #pragma: no cover
-            #TODO: testable?
+        except PermissionError as err_permission:
             #UNABLE TO CREATE LOG PATH
             warning_msg = (
                 'Unable to create logging path.  Defaulting to \'.\'' +
@@ -309,17 +302,13 @@ def test_logpath(log_path, debug_mode=False):
                 ResourceWarning
             )
             return '.'
-        except Exception as err_msg:
-            raise err_msg
 
     ## Make sure logger can write to path ##
-    if not access(log_path, W_OK):  #pragma: no cover
-        #TODO: testable?
+    if not access(log_path, W_OK):
         #UNABLE TO WRITE TO LOG PATH
         warning_msg = (
             'Lacking write permissions to path.  Defaulting to \'.\'' +
-            'log_path={0}'.format(log_path) +
-            'exception={0}'.format(err_permission)
+            'log_path={0}'.format(log_path)
         )
         warnings.warn(
             warning_msg,
@@ -418,6 +407,7 @@ class DiscordWebhook(object):
 
     """
     __base_url = 'https://discordapp.com/api/webhooks/'
+    __webhook_url_format = __base_url + r"(\d+)/([\w-]+)"
     def __init__(self):
         """DiscordWebhook initialization"""
         self.webhook_url = ''
@@ -433,14 +423,14 @@ class DiscordWebhook(object):
             webhook_url (str): full webhook url given by Discord 'create webhook' func
 
         """
-        if webhook_url:
-            self.can_query = True
-        self.webhook_url = webhook_url
-        #FIXME vv this is hacky as fuck
-        trunc_url = self.webhook_url.replace(self.__base_url, '')
-        id_list = trunc_url.split('/')
-        self.serverid = int(id_list[0])
-        self.api_key = id_list[1]
+        if not webhook_url:
+            raise Exception('Url can not be None')
+
+        matcher = re.match(self.__webhook_url_format, webhook_url)
+        if not matcher:
+            raise Exception('Invalid url format, looking for: ' + self.__webhook_url_format)
+
+        self.api_keys(int(matcher.group(1)), matcher.group(2))
 
     def api_keys(self, serverid, api_key):
         """Load object with id/API pair
@@ -451,10 +441,10 @@ class DiscordWebhook(object):
 
         """
         if serverid and api_key:
-            self.can_query = True
-        self.serverid = serverid
+            self.can_query = True # Yes, we _are_ (will be) configured
+        self.serverid = int(serverid)
         self.api_key = api_key
-        self.webhook_url = self.__base_url + self.serverid + '/' + self.api_key
+        self.webhook_url = self.__base_url + str(self.serverid) + '/' + self.api_key
 
 
     def get_webhook_info(self):
@@ -462,7 +452,7 @@ class DiscordWebhook(object):
         if not self.can_query:
             raise RuntimeError('webhook information not loaded, cannot query')
 
-        raise NotImplementedError('requests call to discord server for API info: TODO')
+        raise NotImplementedError('requests call to discord server for API info: TODO') # pragma: no cover
 
     def __bool__(self):
         return self.can_query
@@ -490,7 +480,10 @@ class HackyDiscordHandler(logging.Handler):
         """
         logging.Handler.__init__(self)
         self.webhook_obj = webhook_obj
-        self.api_url = self.webhook_obj.webhook_url
+        if not self.webhook_obj: # test if it's configured
+            raise Exception('Webhook not configured.')
+
+        self.api_url = webhook_obj.webhook_url
         self.alert_recipient = alert_recipient
         self.alert_length = 0
         if self.alert_recipient:
@@ -530,8 +523,7 @@ class HackyDiscordHandler(logging.Handler):
                 headers=header,
                 json=payload
             )
-        except Exception as error_msg:  # pragma: no cover
-            #TODO: testable?
+        except Exception as error_msg:
             warning_msg = (
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
                 '\r\texception={0}'.format(error_msg) +

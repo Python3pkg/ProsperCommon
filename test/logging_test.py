@@ -4,12 +4,14 @@ Pytest functions for exercising prosper.common.prosper_logging
 
 """
 
-from os import path, listdir, remove, makedirs
+from os import path, listdir, remove, makedirs, rmdir
 import configparser
 import logging
 from datetime import datetime
+from warnings import warn
 
 import pytest
+from mock import patch, Mock
 from testfixtures import LogCapture
 
 import prosper.common.prosper_logging as prosper_logging
@@ -263,43 +265,219 @@ def test_discord_logger(config=TEST_CONFIG):
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
     )
 
+def test_configure_common(config=TEST_CONFIG):
+    """test if minimal log level is used"""
+    test_logname = 'test_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+
+    min_log_level = 'WARNING'
+    log_builder.configure_default_logger(log_level=min_log_level)
+    logger = log_builder.get_logger()
+
+    assert logger.isEnabledFor(logging.getLevelName(min_log_level))
+
 def test_bad_init():
     """test validation for prosper_config.ProsperConfig"""
-    #NOTE: prosper_logging:88
-    pytest.skip('NOT IMPLEMENTED')
+    test_logname = 'exceptional_logger'
+    with pytest.raises(TypeError):
+        prosper_logging.ProsperLogger(
+            test_logname,
+            LOG_PATH,
+            None #<-- offending argument
+        )
 
-def test_handle_str():
+def test_handle_str(config=TEST_CONFIG):
     """test validation for ProsperLogger.__str__"""
-    #NOTE: prosper_logging:112
-    pytest.skip('NOT IMPLEMENTED')
+    test_logname = 'str_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+    log_builder.configure_default_logger()
+    
+    # test that there is _some_ implementation
+    assert object.__str__(log_builder) != log_builder.__str__()
 
 def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_format = 'STDOUT'
+    format_actual = prosper_logging.ReportingFormats[test_format].value
+    test_file = 'test/test_alt_format.cfg'
 
-def test_discordwebhook_class():
-    """validate DiscordWebhook behavior"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_logname = 'test_logger'
+    logger_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=prosper_config.ProsperConfig(test_file)
+    )
+
+    logger_builder.configure_default_logger()
+    logger = logger_builder.get_logger()
+
+    result = False
+    for fmt in [h.formatter._fmt for h in logger.handlers]: #check if we have a handler with the requested format
+        result = result or fmt == format_actual
+
+    assert result
 
 def test_debugmode_pathing():
     """validate debug_mode=True behaivor in test_logpath"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_paths = [
+        "logs",
+        "bloo",
+        "some string with spaces"
+    ]
+
+    debug_path = "."
+    assert all(prosper_logging.test_logpath(path, debug_mode=True) == debug_path for path in test_paths)
 
 def test_pathmaking():
     """validate test_logpath can makedirs"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_path = 'test mkdir folder'
 
-def test_pathmaking_fail_makedirs():
-    """validate failure behavior when making paths"""
-    pytest.skip('NOT IMPLEMENTED')
+    actual = prosper_logging.test_logpath(test_path)
+    assert actual == test_path #Test if the returned path is the one we wanted
+    assert path.exists(test_path)
+    rmdir(test_path) #If here, we know dir exists
 
-def test_pathmaking_fail_writeaccess():
-    """check W_OK behavior when testing logpath"""
-    pytest.skip('NOT IMPLEMENTED')
+def test_discordwebhook_api_keys():
+    """validate that we can query after setting serverid and api key"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
+
+    webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
+
+    assert webhook #using __bool__
+
+def test_discordwebhook_webhook_url():
+    """validate that we can query after setting serverid and api key"""
+    base_url = 'https://discordapp.com/api/webhooks/'
+    test_serverid = 1234
+    test_apikey = 'some-key'
+    test_url_faulty = 'some string'
+    test_url_correct = base_url + str(test_serverid) + '/' + test_apikey
+
+    discord_webhook = prosper_logging.DiscordWebhook()
+    
+    with pytest.raises(Exception):
+        discord_webhook.webhook(None)
+
+    with pytest.raises(Exception):
+        discord_webhook.webhook(test_url_faulty)    
+
+    discord_webhook.webhook(test_url_correct)
+    assert discord_webhook
+
+def test_discordwebhook_str():
+    """test that there is some str implementation"""
+
+    webhook = prosper_logging.DiscordWebhook()
+
+    assert object.__str__(webhook) != webhook.__str__()
+
+def test_discordwebhook_get_webhook_info():
+    """test get_webhook_method"""
+
+    webhook = prosper_logging.DiscordWebhook()
+
+    with pytest.raises(RuntimeError): #Because we have not set serverid and apikey yet
+        webhook.get_webhook_info()
 
 def test_discord_logginghook():
     """validate __init__ behavior for HackyDiscordHandler"""
-    pytest.skip('NOT IMPLEMENTED')
+    test_serverid = 1234
+    test_apikey = 'some_key'
+    test_alert_recipient = 'some_user'
+
+    webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
+    handler = prosper_logging.HackyDiscordHandler(webhook, test_alert_recipient)
+
+    # validate that parameters are actually used
+    assert handler.webhook_obj == webhook
+    assert handler.alert_recipient == test_alert_recipient
+
+def test_discord_logginghook_unconfigured():
+    """verify exception when webhook is unconfigured"""
+
+    webhook = prosper_logging.DiscordWebhook()
+    
+    with pytest.raises(Exception):
+        prosper_logging.HackyDiscordHandler(webhook)
+
+@patch('prosper.common.prosper_logging.makedirs', side_effect=PermissionError)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_pathmaking_fail_makedirs(warn, makedirs):
+    """validate failure behavior when making paths"""
+    test_log_path = 'test_folder delete this'
+
+    ret = prosper_logging.test_logpath(test_log_path)
+
+    assert warn.called
+
+@patch('prosper.common.prosper_logging.access', return_value=False)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_pathmaking_fail_writeaccess(warn, access):
+    """check W_OK behavior when testing logpath"""
+    test_log_path = 'logs'
+
+    ret = prosper_logging.test_logpath(test_log_path)
+
+    assert warn.called
+
+@patch('requests.post')
+def test_send_msg_to_webhook_success(post):
+    """verify that the handler is sending messages"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
+
+    webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
+    handler = prosper_logging.HackyDiscordHandler(webhook)
+
+    handler.send_msg_to_webhook('dummy')
+
+    assert post.called
+
+@patch('requests.post', side_effect=Exception)
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_send_msg_to_webhook_faulty(warn, post):
+    """verify that the handler gives a warning on exception"""
+    test_serverid = 1234
+    test_apikey = 'some_key'
+
+    webhook = prosper_logging.DiscordWebhook()
+    webhook.api_keys(test_serverid, test_apikey)
+    handler = prosper_logging.HackyDiscordHandler(webhook)
+
+    handler.send_msg_to_webhook('dummy')
+
+    assert warn.called
+
+@patch('prosper.common.prosper_logging.warnings.warn')
+def test_prosper_logger_close_handles(warn, config=TEST_CONFIG):
+    "test if warning is given when closing a handler exceptionlally"
+
+    fake_handler = logging.StreamHandler()
+    fake_handler.close = Mock(side_effect=Exception)
+
+    test_logname = 'test_logger'
+    logger_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+
+    logger_builder.log_handlers.append(fake_handler)
+    logger_builder.close_handles()
+
+    assert warn.called
 
 if __name__ == '__main__':
     test_rotating_file_handle()
