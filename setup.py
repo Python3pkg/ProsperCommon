@@ -1,11 +1,11 @@
-'''wheel setup for Prosper common utilities'''
+"""wheel setup for Prosper common utilities"""
 
 from os import path, listdir
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.3.7'
+__version__ = '0.3.8'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -100,13 +100,14 @@ setup(
         ]
     },
     install_requires=[
-        'requests>=2.12.0',
+        'requests~=2.12.0',
         #TODO: pandas/numpy/matplotlib requirements
     ],
     tests_require=[
-        'pytest>=3.0.0',
-        'testfixtures>=4.12.0',
-        'pytest_cov>=2.4.0'
+        'pytest~=3.0.0',
+        'testfixtures~=4.12.0',
+        'pytest_cov~=2.4.0',
+        'mock~=2.0.0'
     ],
     cmdclass={
         'test':PyTest
