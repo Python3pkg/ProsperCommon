@@ -29,7 +29,6 @@ the `LogBuilder` can be extended with some other handlers if required.  Also, de
 
 ```python
 def configure_default_logger(
-    self,
     log_freq:str,
     log_total:int,
     log_level:log_level_str,
@@ -50,7 +49,6 @@ This handler is loaded by default.  It can be reset by calling `ProsperLogger().
 
 ```python
 def configure_debug_logger(
-    self,
     log_level:log_level_str,
     log_format:log_format_str,
     debug_mode:bool
@@ -63,26 +61,46 @@ def configure_debug_logger(
 
 For live debugging, report logging messages to standard out.  This can be attached by a [Plumbum.cli](http://plumbum.readthedocs.io/en/latest/cli.html) for easy toggling between debug/production logging
 
-## configure_discord_handler
+## configure_discord_logger
 
 ```python
-def configure_discord_handler(
-    self,
-    log_level:log_level_str,
-    log_format:log_format_str,
+def configure_discord_logger(
     discord_webhook:url_str,
     discord_recipient:'<@int>'_discord_id_str,
+    log_level:log_level_str,
+    log_format:log_format_str,
     debug_mode:bool
 ):
 ```
 
-* log_level: default 'ERROR'
-* log_format: default `ReportingFormats.PRETTY_PRINT`
 * discord_webhook: [discord webhook url](https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks)
 * discord_recipients: `<@int>` for alerting [users](https://discordapp.com/developers/docs/resources/user#user-object)/groups (see app developer console)
+* log_level: default 'ERROR'
+* log_format: default `ReportingFormats.PRETTY_PRINT`
 * debug_mode: unused
 
 Live alerting is a useful tool.  ProsperCommon is loaded with a REST handler for pushing logging alerts to [discord webhooks](https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks).  Any alerts above a given level will be pushed out to a discord channel along the webhook pipeline
+
+
+## configure_slack_logger
+
+```python
+def configure_slack_logger(
+    slack_webhook:url_str,
+    log_level:log_level_str,
+    log_format:log_format_str
+    debug_mode:bool
+):
+```
+
+* slack_webhook: [Slack webhook url](https://api.slack.com/apps)
+* log_level: default 'ERROR'
+* log_format: default `ReportingFormats.PRETTY_PRINT`
+* debug_mode: unused
+
+Similar to the Discord handler, the Slack handler works very similarly.  Just get a [webhook for slack](https://api.slack.com/apps) and assign the appropriate channel scope.  
+
+NOTE: does not have alerting built in by default.  Best-practice for alerting humans may be to configure multiple slack_logger handles with direct message webhooks.
 
 # Logging Configuration
 
@@ -103,6 +121,7 @@ ProsperLogger is designed with the following priority order for finding configur
     discord_webhook = #SECRET
     discord_level = ERROR
     discord_alert_recipient = <@236681427817725954>
+    slack_webhook = #SECRET
 ```
 This section is valid in any loaded configuration object loaded by prosper.common.prosper_config `get_config()`.  Any commented/blank keys are loaded as `None` but should have error handling in place.
 
