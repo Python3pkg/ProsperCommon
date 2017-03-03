@@ -138,19 +138,34 @@ def test_rotating_file_handle(config=TEST_CONFIG):
     test_cleanup_log_directory(log_builder)
 
 #TODO: add pytest.mark to skip
-WEBHOOK = TEST_CONFIG.get_option('LOGGING', 'discord_webhook', None)
-def test_webhook(config_override=TEST_CONFIG):
+DISCORD_WEBHOOK = TEST_CONFIG.get_option('LOGGING', 'discord_webhook', None)
+def test_discord_webhook(config_override=TEST_CONFIG):
     """Push 'hello world' message through Discord webhook"""
 
 
-    if not WEBHOOK: #FIXME: commenting doesn't work in config file?
+    if not DISCORD_WEBHOOK: #FIXME: commenting doesn't work in config file?
         pytest.skip('discord_webhook is blank')
 
     webhook_obj = prosper_logging.DiscordWebhook()
-    webhook_obj.webhook(WEBHOOK)
+    webhook_obj.webhook(DISCORD_WEBHOOK)
     test_handler = prosper_logging.HackyDiscordHandler(webhook_obj)
 
     test_handler.test(str(ME) + ' -- hello world')
+
+SLACK_WEBHOOK = TEST_CONFIG.get_option('LOGGING', 'slack_webhook', None)
+def test_slack_webhook(config_override=TEST_CONFIG):
+    """push 'hello world' message through Slack webhook"""
+    if not SLACK_WEBHOOK:
+        pytest.skip('slack_webhoo is blank')
+
+    test_payload = {
+        'fallback': 'hello world',
+        'text': 'hello world',
+        'color': 'good'
+    }
+    test_handler = prosper_logging.HackySlackHandler(SLACK_WEBHOOK)
+
+    test_handler.send_msg_to_webhook(test_payload)
 
 def test_logpath_builder_positive(config=TEST_CONFIG):
     """Make sure test_logpath() function has expected behavior -- affermative case
@@ -231,7 +246,7 @@ REQUEST_NEW_CONNECTION = TEST_CONFIG.get_option('TEST', 'request_new_connection'
 REQUEST_POST_ENDPOINT  = TEST_CONFIG.get_option('TEST', 'request_POST_endpoint', None)
 def test_discord_logger(config=TEST_CONFIG):
     """Execute LogCapture on Discord logger object"""
-    if not WEBHOOK: #FIXME: commenting doesn't work in config file?
+    if not DISCORD_WEBHOOK: #FIXME: commenting doesn't work in config file?
         pytest.skip('discord_webhook is blank')
 
     test_logname = 'discord_logger'
@@ -246,7 +261,7 @@ def test_discord_logger(config=TEST_CONFIG):
     log_capture = helper_log_messages(test_logger)
 
     discord_helper = prosper_logging.DiscordWebhook()
-    discord_helper.webhook(WEBHOOK) #TODO: add blank-webhook test
+    discord_helper.webhook(DISCORD_WEBHOOK) #TODO: add blank-webhook test
 
     request_POST_endpoint = REQUEST_POST_ENDPOINT.\
         format(
@@ -263,6 +278,38 @@ def test_discord_logger(config=TEST_CONFIG):
         (REQUEST_LOGNAME, 'DEBUG', REQUEST_NEW_CONNECTION),
         (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
         (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--')
+    )
+
+SLACK_NEW_CONNECTION = TEST_CONFIG.get_option('TEST', 'slack_new_connection', None)
+SLACK_POST_ENDPOINT = TEST_CONFIG.get_option('TEST', 'slack_POST_endpoint', None)
+def test_slack_logger(config=TEST_CONFIG):
+    """Execute LogCapture on Slack logger object"""
+    if not SLACK_WEBHOOK:
+        pytest.skip('slack_webhook is blank')
+
+    test_logname = 'slack_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+    log_builder.configure_slack_logger(SLACK_WEBHOOK)
+    test_logger = log_builder.get_logger()
+
+    log_capture = helper_log_messages(test_logger)
+
+    request_POST_endpoint = SLACK_POST_ENDPOINT.\
+        format(webhook_info=SLACK_WEBHOOK.replace('https://hooks.slack.com', ''))
+
+    log_capture.check(
+        (test_logname, 'INFO',     'prosper.common.prosper_logging TEST --INFO--'),
+        (test_logname, 'WARNING',  'prosper.common.prosper_logging TEST --WARNING--'),
+        (REQUEST_LOGNAME, 'DEBUG', SLACK_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
+        (test_logname, 'ERROR',    'prosper.common.prosper_logging TEST --ERROR--'),
+        (REQUEST_LOGNAME, 'DEBUG', SLACK_NEW_CONNECTION),
+        (REQUEST_LOGNAME, 'DEBUG', request_POST_endpoint),
+        (test_logname, 'CRITICAL', 'prosper.common.prosper_logging TEST --CRITICAL--'),
     )
 
 def test_configure_common(config=TEST_CONFIG):
@@ -299,7 +346,7 @@ def test_handle_str(config=TEST_CONFIG):
         config_obj=config
     )
     log_builder.configure_default_logger()
-    
+
     # test that there is _some_ implementation
     assert object.__str__(log_builder) != log_builder.__str__()
 
@@ -364,12 +411,12 @@ def test_discordwebhook_webhook_url():
     test_url_correct = base_url + str(test_serverid) + '/' + test_apikey
 
     discord_webhook = prosper_logging.DiscordWebhook()
-    
+
     with pytest.raises(Exception):
         discord_webhook.webhook(None)
 
     with pytest.raises(Exception):
-        discord_webhook.webhook(test_url_faulty)    
+        discord_webhook.webhook(test_url_faulty)
 
     discord_webhook.webhook(test_url_correct)
     assert discord_webhook
@@ -407,7 +454,7 @@ def test_discord_logginghook_unconfigured():
     """verify exception when webhook is unconfigured"""
 
     webhook = prosper_logging.DiscordWebhook()
-    
+
     with pytest.raises(Exception):
         prosper_logging.HackyDiscordHandler(webhook)
 

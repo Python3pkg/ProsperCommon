@@ -47,6 +47,8 @@ DISCORD_PAD_SIZE = 100
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
+SILENCE_OVERRIDE = False    #deactivate webhook loggers for testmode
+
 class ReportingFormats(Enum):
     """Enum for storing handy log formats"""
     DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
@@ -133,7 +135,7 @@ class ProsperLogger(object):
             handler
     ):
         """commom configuration code
-        
+
         Args:
             prefix (str): A prefix for the `log_level` and `log_format` keys to use with the config. #FIXME: Hacky, add separate sections for each logger config?
             fallback_level (str): Fallback/minimum log level, for if config does not have one.
@@ -143,8 +145,14 @@ class ProsperLogger(object):
 
         """
         ## Retrieve settings from config ##
-        log_level = self.config.get_option('LOGGING', prefix + 'log_level', None, fallback_level)
-        log_format_name = self.config.get_option('LOGGING', prefix + 'log_format', None, None)
+        log_level = self.config.get_option(
+            'LOGGING', prefix + 'log_level',
+            None, fallback_level
+        )
+        log_format_name = self.config.get_option(
+            'LOGGING', prefix + 'log_format',
+            None, None
+        )
         log_format = ReportingFormats[log_format_name].value if log_format_name else fallback_format
 
         ## Attach handlers/formatter ##
@@ -157,7 +165,7 @@ class ProsperLogger(object):
 
         ## Save info about handler created ##
         self.log_info.append(handler_name + ' @ ' + str(log_level))
-        self.log_handlers.append(handler) 
+        self.log_handlers.append(handler)
 
     def configure_default_logger(
             self,
@@ -178,8 +186,14 @@ class ProsperLogger(object):
 
         """
         ## Override defaults if required ##
-        log_freq  = self.config.get_option('LOGGING', 'log_freq', None, log_freq)
-        log_total = self.config.get_option('LOGGING', 'log_total', None, log_total)        
+        log_freq  = self.config.get_option(
+            'LOGGING', 'log_freq',
+            None, log_freq
+        )
+        log_total = self.config.get_option(
+            'LOGGING', 'log_total',
+            None, log_total
+        )
 
         ## Set up log file handles/name ##
         log_filename = self.log_name + '.log'
@@ -228,7 +242,7 @@ class ProsperLogger(object):
             Will warn and not attach hipchat logger if missing webhook key
             Learn more about webhooks: https://support.discordapp.com/hc/en-us/articles/228383668-Intro-to-Webhooks
         Args:
-            discord_webhook (str): hipchat room webhook (full URL)
+            discord_webhook (str): discord room webhook (full URL)
             discord_recipient (`str`:<@int>, optional): user/group to notify
             log_level (str): desired log level for handle https://docs.python.org/3/library/logging.html#logging-levels
             log_format (str): format for logging messages https://docs.python.org/3/library/logging.html#logrecord-attributes
@@ -236,14 +250,20 @@ class ProsperLogger(object):
 
         """
         ## Override defaults if required ##
-        discord_webhook = self.config.get_option('LOGGING', 'discord_webhook', None, discord_webhook)
-        discord_recipient = self.config.get_option('LOGGING', 'discord_recipient', None, discord_recipient)
+        discord_webhook = self.config.get_option(
+            'LOGGING', 'discord_webhook',
+            None, discord_webhook
+        )
+        discord_recipient = self.config.get_option(
+            'LOGGING', 'discord_recipient',
+            None, discord_recipient
+        )
 
         ## Make sure we CAN build a discord webhook ##
         if not discord_webhook:
             warnings.warn(
                 'Lacking discord_webhook defintion, unable to attach webhook',
-                ResourceWarning
+                RuntimeWarning
             )
             return
 
@@ -256,21 +276,77 @@ class ProsperLogger(object):
                     discord_obj,
                     discord_recipient
                 )
-                self._configure_common('discord_', log_level, log_format, 'Discord', discord_handler)
+                self._configure_common(
+                    'discord_',
+                    log_level,
+                    log_format,
+                    'Discord',
+                    discord_handler
+                )
             except Exception as error_msg: #FIXME: remove this, if we're just re-throwing?
-                raise error_msg 
+                raise error_msg
         else:
             warnings.warn(
                 'Unable to execute webhook',
-                ResourceWarning
+                RuntimeWarning
             )
+
+    def configure_slack_logger(
+            self,
+            slack_webhook=None,
+            log_level='ERROR',
+            log_format=ReportingFormats.PRETTY_PRINT.value,
+            debug_mode=_debug_mode
+    ):
+        """logger for sending messages to Discord.  Easy way to alert humans of issues
+
+        Note:
+            Will try to overwrite minimum log level to enable requested log_level
+            Will warn and not attach hipchat logger if missing webhook key
+            Learn more about webhooks: https://api.slack.com/docs/message-attachments
+        Args:
+            slack_webhook (str): slack bot webhook (full URL)
+            log_level (str): desired log level for handle https://docs.python.org/3/library/logging.html#logging-levels
+            log_format (str): format for logging messages https://docs.python.org/3/library/logging.html#logrecord-attributes
+            debug_mode (bool): a way to trigger debug/verbose modes inside object (UNIMPLEMENTED)
+
+        """
+        ## Override defaults if required ##
+        slack_webhook = self.config.get_option(
+            'LOGGING', 'slack_webhook',
+            None, slack_webhook
+        )
+
+
+        ## Make sure we CAN build a slack webhook ##
+        if not slack_webhook:
+            warnings.warn(
+                'Lacking slack_webhook defintion, unable to attach webhook',
+                RuntimeWarning
+            )
+            return
+
+        ## Actually build slack logging handler ##
+        try:
+            slack_handler = HackySlackHandler(
+                slack_webhook
+            )
+            self._configure_common(
+                'slack_',
+                log_level,
+                log_format,
+                'Slack',
+                slack_handler
+            )
+        except Exception as error_msg:
+            raise error_msg
 
 def test_logpath(log_path, debug_mode=False):
     """Tests if logger has access to given path and sets up directories
 
     Note:
         Should always yield a valid path.  May default to script directory
-        Will throw warnings.ResourceWarning if permissions do not allow file write at path
+        Will throw warnings.RuntimeWarning if permissions do not allow file write at path
 
     Args:
         log_path (str): path to desired logfile.  Abspath > relpath
@@ -299,7 +375,7 @@ def test_logpath(log_path, debug_mode=False):
             )
             warnings.warn(
                 warning_msg,
-                ResourceWarning
+                RuntimeWarning
             )
             return '.'
 
@@ -312,7 +388,7 @@ def test_logpath(log_path, debug_mode=False):
         )
         warnings.warn(
             warning_msg,
-            ResourceWarning
+            RuntimeWarning
         )
         return '.'
         #TODO: windows behavior requires abspath to existing file
@@ -461,7 +537,7 @@ class DiscordWebhook(object):
         return self.webhook_url
 
 class HackyDiscordHandler(logging.Handler):
-    """Custom logging.Hnalder for pushing messages to Discord
+    """Custom logging.Handler for pushing messages to Discord
 
     Should be able to push messages to any REST webhook with small adjustments
 
@@ -526,12 +602,12 @@ class HackyDiscordHandler(logging.Handler):
         except Exception as error_msg:
             warning_msg = (
                 'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
-                '\r\texception={0}'.format(error_msg) +
-                '\r\tmessage={0}'.format(message)
+                '\n\texception={0}'.format(error_msg) +
+                '\n\tmessage={0}'.format(message)
             )
             warnings.warn(
                 warning_msg,
-                ResourceWarning
+                RuntimeWarning
             )
     def test(self, message):
         """testing hook for exercising webhook directly"""
@@ -540,3 +616,73 @@ class HackyDiscordHandler(logging.Handler):
             self.send_msg_to_webhook(message)
         except Exception as error_msg:
             raise error_msg
+
+class HackySlackHandler(logging.Handler):
+    """Custom logging.Handler for pushing messages to Discord"""
+    def __init__(self, webhook_url):
+        logging.Handler.__init__(self)
+
+        self.webhook_url = webhook_url
+
+    def emit(self, record):
+        #log_msg = self.format(record)
+        log_payload = self.decorate(record)
+        self.send_msg_to_webhook(log_payload)
+
+    def decorate(self, record):
+        """add slack-specific flourishes to responses
+
+        https://api.slack.com/docs/message-attachments
+
+        Args:
+            record (:obj:`logging.record`): message to log
+
+        Returns:
+            (:obj:`dict`): attachments object for reporting
+
+        """
+        attachments = {}
+        ## Set color
+        if record.levelno >= logging.ERROR:
+            attachments['color'] = 'warning' #builtin
+        if record.levelno >= logging.CRITICAL:
+            attachments['color'] = 'danger' #builtin
+
+        ## Log text
+        attachments['text'] = self.format(record)
+        attachments['fallback'] = self.format(record)
+        return attachments
+
+    def send_msg_to_webhook(self, json_payload):
+        """push message out to webhook
+
+        Args:
+            json_payload(:obj:`dict`): preformatted payload a la https://api.slack.com/docs/message-attachments
+
+        """
+        if SILENCE_OVERRIDE:
+            return
+
+        payload = {
+            'attachments':[json_payload]
+        }
+        header = {
+            'Content-Type':'application/json'
+        }
+
+        try:
+            request = requests.post(
+                self.webhook_url,
+                headers=header,
+                json=payload
+            )
+        except Exception as error_msg:
+            warning_msg = (
+                'EXCEPTION: UNABLE TO COMMIT LOG MESSAGE' +
+                '\n\texception={0}'.format(error_msg) +
+                '\n\tmessage={0}'.format(message)
+            )
+            warnings.warn(
+                warning_msg,
+                RuntimeWarning
+            )
