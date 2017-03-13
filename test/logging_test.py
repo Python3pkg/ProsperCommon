@@ -241,6 +241,25 @@ def test_debug_logger(config=TEST_CONFIG):
 
     test_cleanup_log_directory(log_builder)
 
+def test_iter_util(config=TEST_CONFIG):
+    """validate __iter__ works as expected"""
+    test_logname = 'debug_logger'
+    log_builder = prosper_logging.ProsperLogger(
+        test_logname,
+        LOG_PATH,
+        config_obj=config
+    )
+    log_builder.configure_debug_logger()
+    test_logger = log_builder.get_logger() #use default behavior
+
+    expected_handlers = [
+        logging.handlers.TimedRotatingFileHandler,  #default handler
+        logging.StreamHandler                       #debug handler
+    ]
+    for indx, handler in enumerate(log_builder):
+        print(type(handler))
+        assert isinstance(handler, expected_handlers[indx])
+
 REQUEST_LOGNAME        = TEST_CONFIG.get_option('TEST', 'request_logname', None)
 REQUEST_NEW_CONNECTION = TEST_CONFIG.get_option('TEST', 'request_new_connection', None)
 REQUEST_POST_ENDPOINT  = TEST_CONFIG.get_option('TEST', 'request_POST_endpoint', None)

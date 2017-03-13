@@ -114,6 +114,11 @@ class ProsperLogger(object):
         """return list of 'handler_name @ log_level' for debug"""
         return ','.join(self.log_info)
 
+    def __iter__(self):
+        """returns each handler in order"""
+        for handler in self.log_handlers:
+            yield handler
+
     def close_handles(self):
         """cannot delete logs unless handles are closed (windows)"""
         for handle in self.log_handlers:
