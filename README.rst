@@ -1,2 +1,0 @@
-# ProsperCommon
-Prosper common utilities
