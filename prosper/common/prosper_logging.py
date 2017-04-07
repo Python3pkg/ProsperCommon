@@ -54,6 +54,7 @@ class ReportingFormats(Enum):
     DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
     PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1000s'
     STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
+    SLACK_PRINT = '%(message).1000s'
 
 class ProsperLogger(object):
     """One logger to rule them all.  Build the right logger for your script in a few easy steps
@@ -300,7 +301,7 @@ class ProsperLogger(object):
             self,
             slack_webhook=None,
             log_level='ERROR',
-            log_format=ReportingFormats.PRETTY_PRINT.value,
+            log_format=ReportingFormats.SLACK_PRINT.value,
             debug_mode=_debug_mode
     ):
         """logger for sending messages to Discord.  Easy way to alert humans of issues
@@ -634,7 +635,10 @@ class HackySlackHandler(logging.Handler):
     def emit(self, record):
         #log_msg = self.format(record)
         log_payload = self.decorate(record)
-        self.send_msg_to_webhook(log_payload)
+        if record.exc_text:
+            record.exc_text = '```\n{0}\n```'.format(record.exc_text) # recast to code block
+        log_msg = self.format(record)
+        self.send_msg_to_webhook(log_payload, log_msg)
 
     def decorate(self, record):
         """add slack-specific flourishes to responses
@@ -656,11 +660,18 @@ class HackySlackHandler(logging.Handler):
             attachments['color'] = 'danger' #builtin
 
         ## Log text
-        attachments['text'] = self.format(record)
-        attachments['fallback'] = self.format(record)
+        attach_text = '{levelname}: {name} {module}.{funcName}:{lineno}'.format(
+            levelname=record.levelname,
+            name=record.name,
+            module=record.module,
+            funcName=record.funcName,
+            lineno=record.lineno
+        )
+        attachments['text'] = attach_text
+        attachments['fallback'] = attach_text
         return attachments
 
-    def send_msg_to_webhook(self, json_payload):
+    def send_msg_to_webhook(self, json_payload, log_msg):
         """push message out to webhook
 
         Args:
@@ -671,6 +682,7 @@ class HackySlackHandler(logging.Handler):
             return
 
         payload = {
+            'text': log_msg,
             'attachments':[json_payload]
         }
         header = {

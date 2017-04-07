@@ -156,7 +156,7 @@ SLACK_WEBHOOK = TEST_CONFIG.get_option('LOGGING', 'slack_webhook', None)
 def test_slack_webhook(config_override=TEST_CONFIG):
     """push 'hello world' message through Slack webhook"""
     if not SLACK_WEBHOOK:
-        pytest.skip('slack_webhoo is blank')
+        pytest.skip('slack_webhook is blank')
 
     test_payload = {
         'fallback': 'hello world',
@@ -165,7 +165,7 @@ def test_slack_webhook(config_override=TEST_CONFIG):
     }
     test_handler = prosper_logging.HackySlackHandler(SLACK_WEBHOOK)
 
-    test_handler.send_msg_to_webhook(test_payload)
+    test_handler.send_msg_to_webhook(test_payload, 'dummy message')
 
 def test_logpath_builder_positive(config=TEST_CONFIG):
     """Make sure test_logpath() function has expected behavior -- affermative case
