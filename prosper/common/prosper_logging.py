@@ -52,7 +52,7 @@ SILENCE_OVERRIDE = False    #deactivate webhook loggers for testmode
 class ReportingFormats(Enum):
     """Enum for storing handy log formats"""
     DEFAULT = '[%(asctime)s;%(levelname)s;%(filename)s;%(funcName)s;%(lineno)s] %(message)s'
-    PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1400s'
+    PRETTY_PRINT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s]\n%(message).1000s'
     STDOUT = '[%(levelname)s:%(filename)s--%(funcName)s:%(lineno)s] %(message)s'
 
 class ProsperLogger(object):
@@ -572,6 +572,8 @@ class HackyDiscordHandler(logging.Handler):
 
     def emit(self, record): # pragma: no cover
         """required classmethod for logging to execute logging message"""
+        if record.exc_text:
+            record.exc_text = '```python\n{0}\n```'.format(record.exc_text) # recast to code block
         log_msg = self.format(record)
         if len(log_msg) + self.alert_length > DISCORD_MESSAGE_LIMIT:
             log_msg = log_msg[:(DISCORD_MESSAGE_LIMIT - DISCORD_PAD_SIZE)]
