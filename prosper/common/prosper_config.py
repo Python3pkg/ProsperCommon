@@ -15,8 +15,6 @@ DEFAULT_LOGGER.addHandler(logging.NullHandler())
 
 HERE = path.abspath(path.dirname(__file__))
 
-
-
 class ProsperConfig(object):
     """configuration handler for all prosper projects
 
