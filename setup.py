@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.5.0'
+__version__ = '0.6.0'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -87,21 +87,13 @@ setup(
     keywords='prosper eveonline api CREST',
     packages=hack_find_packages('prosper'),
     include_package_data=True,
-    #data_files=[
-    #    #Can't use data_files with gemfury upload (need `bdist_wheel`)
-    #    #TODO: license + README
-    #    #('test', include_all_subfiles('test')),
-    #    #('docs', include_all_subfiles('docs'))
-    #],
     package_data={
         'prosper':[
-            'common/common_config.cfg',
-            'crest/crest_config.cfg'
+            'common/common_config.cfg'
         ]
     },
     install_requires=[
         'requests>=2.12.0'
-        #TODO: pandas/numpy/matplotlib requirements
     ],
     tests_require=[
         'pytest>=3.0.0',
