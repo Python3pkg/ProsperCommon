@@ -277,7 +277,6 @@ def test_discord_logger(config=TEST_CONFIG):
     log_builder.configure_discord_logger()
     test_logger = log_builder.get_logger() #use default behavior
 
-    test_logger.error('validate exc_info', exc_info=True)
     log_capture = helper_log_messages(test_logger)
 
     discord_helper = prosper_logging.DiscordWebhook()
