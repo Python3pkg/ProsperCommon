@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.6.0'
+__version__ = '0.6.1'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -86,7 +86,7 @@ setup(
     ],
     keywords='prosper eveonline api CREST',
     packages=hack_find_packages('prosper'),
-    include_package_data=True,
+    #include_package_data=True,
     package_data={
         'prosper':[
             'common/common_config.cfg'

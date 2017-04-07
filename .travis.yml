@@ -6,3 +6,8 @@ install:
   - "pip install ."
 script: 
   - "python setup.py test"
+deploy:
+  provider: script
+  script: scripts/push_gemfury.sh
+  on:
+    tags: true
