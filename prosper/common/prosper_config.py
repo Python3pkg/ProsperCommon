@@ -4,18 +4,18 @@ Unified config parsing and option picking against config objects
 
 """
 
-from os import path
+from os import path, getenv
 import configparser
 from configparser import ExtendedInterpolation
 import warnings
 import logging
-#import prosper.common.prosper_logging as p_logging
 
 DEFAULT_LOGGER = logging.getLogger('NULL')
 DEFAULT_LOGGER.addHandler(logging.NullHandler())
-#DEFAULT_LOGGER = p_logging.DEFAULT_LOGGER
 
 HERE = path.abspath(path.dirname(__file__))
+
+
 
 class ProsperConfig(object):
     """configuration handler for all prosper projects
@@ -25,7 +25,8 @@ class ProsperConfig(object):
     1. args given at runtile
     2. <config_file>_local.cfg -- untracked config with #SECRETS
     3. <config_file>.cfg -- tracked 'master' config without #SECRETS
-    4. args_default -- function default w/o global config
+    4. environment varabile
+    5. args_default -- function default w/o global config
 
     Attributes:
         global_config (:obj:`configparser.ConfigParser`)
@@ -62,9 +63,9 @@ class ProsperConfig(object):
         )
 
     def get(
-        self,
-        section_name: str,
-        key_name: str
+            self,
+            section_name,
+            key_name
     ):
         """Replicate configparser.get() functionality
 
@@ -95,8 +96,8 @@ class ProsperConfig(object):
 
     def get_option(
             self,
-            section_name: str,
-            key_name: str,
+            section_name,
+            key_name,
             args_option=None,
             args_default=None
     ):
@@ -107,7 +108,8 @@ class ProsperConfig(object):
             1. args given at runtile
             2. <config_file>_local.cfg -- untracked config with #SECRETS
             3. <config_file>.cfg -- tracked 'master' config without #SECRETS
-            4. args_default -- function default w/o global config
+            4. environment varabile
+            5. args_default -- function default w/o global config
 
         Args:
             section_name (str): section level name in config
@@ -145,12 +147,47 @@ class ProsperConfig(object):
             self.logger.debug('-- using global config')
             return global_option
 
+        env_option = get_value_from_environment(section_name, key_name, logger=self.logger)
+        if env_option:
+            self.logger.debug('-- using environment value')
+            return env_option
         self.logger.debug('-- using default argument')
         return args_default #If all esle fails return the given default
 
     def attach_logger(self, logger):
         """because load orders might be weird, add logger later"""
         self.logger = logger
+
+ENVNAME_PAD = 'PROSPER'
+def get_value_from_environment(
+        section_name,
+        key_name,
+        envname_pad=ENVNAME_PAD,
+        logger=DEFAULT_LOGGER
+):
+    """check environment for key/value pair
+
+    Args:
+        section_name (str): section name
+        key_name (str): key to look up
+        envname_pad (str, optional): namespace padding
+        logger (:obj:`logging.logger`, optional): logging handle
+
+    Returns:
+        (str) value in environment
+
+    """
+    var_name = '{pad}_{section}__{key}'.format(
+        pad=envname_pad,
+        section=section_name,
+        key=key_name
+    )
+
+    logger.debug('var_name={0}'.format(var_name))
+    value = getenv(var_name)
+    logger.debug('env value={0}'.format(value))
+
+    return value
 
 def get_configs(
         config_filepath,

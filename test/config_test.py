@@ -3,7 +3,7 @@
 Pytest functions for exercising prosper.common.prosper_config
 
 """
-
+import os
 from os import path
 import json
 import pytest
@@ -19,6 +19,15 @@ LOCAL_CONFIG_PATH = path.join(
     'common',
     'common_config.cfg'
 )
+
+ENV_TEST_1 = 'the best value'
+ENV_TEST_NAME = 'PROSPER_TEST__dummy_val'
+def test_setup_environment():
+    """push values into environment for debug"""
+    os.environ[ENV_TEST_NAME] = ENV_TEST_1
+
+    expected_val = prosper_config.get_value_from_environment('TEST', 'dummy_val')
+    assert expected_val == ENV_TEST_1
 
 TEST_BAD_CONFIG_PATH = path.join(HERE, 'bad_config.cfg')
 TEST_BAD_PATH = path.join(HERE, 'no_file_here.cfg')
@@ -66,6 +75,8 @@ def test_priority_order():
 
     ## Test #4 priority
     assert TestConfigObj.get_option('TEST', 'nokey', 111, 111) == 111
+
+    assert TestConfigObj.get_option('TEST', 'dummy_val', None, None) == ENV_TEST_1
 
 def test_local_filepath_helper():
     """test helper function for fetching local configs"""
@@ -120,5 +131,10 @@ def test_fail_get():
     with pytest.raises(KeyError):
         TestConfigObj.get('TEST', 'key4') #no key 4 = exception
 
-if __name__ == '__main__':
-    print(test_config_file())
+
+def test_cleanup_environment():
+    """push values into environment for debug"""
+    del os.environ[ENV_TEST_NAME]
+
+    expected_val = prosper_config.get_value_from_environment('TEST', 'dummy_val')
+    assert expected_val is None
