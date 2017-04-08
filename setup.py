@@ -3,9 +3,10 @@
 from os import path, listdir
 from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
+from codecs import open
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.6.1-8'
+__version__ = '0.6.1-9'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -73,7 +74,7 @@ class PyTest(TestCommand):
         errno = pytest.main(pytest_commands)
         exit(errno)
 
-with open('README.rst', 'r') as f:
+with open('README.rst', 'r', 'utf-8') as f:
     readme = f.read()
 
 setup(
