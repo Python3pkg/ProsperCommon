@@ -6,7 +6,7 @@ from setuptools.command.test import test as TestCommand
 from codecs import open
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.6.1-14'
+__version__ = '1.0.0'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -57,7 +57,7 @@ class PyTest(TestCommand):
     def initialize_options(self):
         TestCommand.initialize_options(self)
         self.pytest_args = [
-            'test',
+            'tests',
             '--cov=prosper/' + __project_name__,
             '--cov-report=term-missing'
         ]    #load defaults here
@@ -85,7 +85,6 @@ setup(
     author='John Purcell',
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/EVEprosper/ProsperCommon',
-    #download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v' + __version__,
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'

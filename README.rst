@@ -6,8 +6,8 @@ ProsperCommon
 
 
 Common utilities for EVEProsper project. To
-reduce boilerplate and increase value across the shared projects in the
-Prosper toolset
+reduce boilerplate across the shared projects in the 
+`EVEProsper <http://www.eveprosper.com>`_toolset
 
 Distribution
 ------------
