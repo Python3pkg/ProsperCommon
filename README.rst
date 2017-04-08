@@ -1,8 +1,8 @@
 ProsperCommon 
 =============
 
-.. image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
-    :target: https://travis-ci.org/EVEprosper/ProsperCommon
+.. |Build Status| image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
+   :target: https://travis-ci.org/EVEprosper/ProsperCommon
 
 
 Common utilities for Prosper project. To
@@ -10,15 +10,15 @@ reduce boilerplate and increase value across the shared projects in the
 Prosper toolset
 
 Distribution
-============
+------------
 
-ProsperCommon is distributed by `GemFury`_ at
-https://repo.fury.io/lockefox/
+ProsperCommon is distributed by `PyPI <https://pypi.python.org/pypi/ProsperCommon>`_
 
-    ``pip install ProsperCommon --extra-index-url=https://repo.fury.io/lockefox/``
+
+    ``pip install ProsperCommon``
 
 Functionality
-=============
+-------------
 
 -  `ProsperLogging`_: a collection of wrappers and helpers to deliver
    unified logging tools and useful handlers
@@ -29,8 +29,3 @@ Functionality
 .. _ProsperLogging: https://github.com/EVEprosper/ProsperCommon/blob/master/docs/prosper_logging.md
 .. _ProsperConfig: https://github.com/EVEprosper/ProsperCommon/blob/master/docs/prosper_config.md
 
-.. |Build Status| image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
-   :target: https://travis-ci.org/EVEprosper/ProsperCommon
-pandoc 1.19.2
-
-© 2013–2015 John MacFarlane
