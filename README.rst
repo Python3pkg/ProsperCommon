@@ -5,7 +5,7 @@ ProsperCommon
    :target: https://travis-ci.org/EVEprosper/ProsperCommon
 
 
-Common utilities for Prosper project. To
+Common utilities for EVEProsper project. To
 reduce boilerplate and increase value across the shared projects in the
 Prosper toolset
 
