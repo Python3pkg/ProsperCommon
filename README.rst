@@ -7,7 +7,7 @@ ProsperCommon
 
 Common utilities for EVEProsper project. To
 reduce boilerplate across the shared projects in the 
-`EVEProsper <http://www.eveprosper.com>`_toolset
+`EVEProsper <http://www.eveprosper.com>`_ toolset
 
 Distribution
 ------------

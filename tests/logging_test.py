@@ -373,7 +373,7 @@ def test_log_format_name():
     """test log_format_name overrides in logging handler builders"""
     test_format = 'STDOUT'
     format_actual = prosper_logging.ReportingFormats[test_format].value
-    test_file = 'test/test_alt_format.cfg'
+    test_file = path.join(HERE, 'test_alt_format.cfg')
 
     test_logname = 'test_logger'
     logger_builder = prosper_logging.ProsperLogger(
