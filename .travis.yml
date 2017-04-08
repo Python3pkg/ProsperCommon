@@ -5,9 +5,9 @@ install:
   - "pip install ."
 script: 
   - "python setup.py test"
+  - "python setup.py sdist bdist_wheel clean --all"
 deploy:
   provider: script
   script: scripts/push_gemfury.sh
-  skip_cleanup: true
   on:
     tags: true
