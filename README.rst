@@ -1,7 +1,7 @@
 ProsperCommon 
 =============
 
-.. |Build Status| image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
+.. image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
    :target: https://travis-ci.org/EVEprosper/ProsperCommon
 
 
@@ -25,7 +25,6 @@ Functionality
 -  `ProsperConfig`_: a unified configuration parser to help pick the
    right values and keep secrets off github.
 
-.. _GemFury: https://gemfury.com/
 .. _ProsperLogging: https://github.com/EVEprosper/ProsperCommon/blob/master/docs/prosper_logging.md
 .. _ProsperConfig: https://github.com/EVEprosper/ProsperCommon/blob/master/docs/prosper_config.md
 
