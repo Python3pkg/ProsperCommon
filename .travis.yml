@@ -8,5 +8,6 @@ script:
 deploy:
   provider: script
   script: scripts/push_gemfury.sh
+  skip_cleanup: true
   on:
     tags: true
