@@ -1,14 +1,6 @@
-colorama==0.3.7
-cycler==0.10.0
-matplotlib==1.5.3
-numpy==1.11.2
-pandas==0.19.0
--e git+git@github.com:EVEprosper/ProsperCommon.git@942c31fc3e26967eb6a2db786d8aa9f628527b0a#egg=ProsperCommon
-py==1.4.31
-pyparsing==2.1.10
-pytest==3.0.3
-python-dateutil==2.5.3
-pytz==2016.7
-requests==2.11.1
+appdirs==1.4.3
+packaging==16.8
+ProsperCommon==1.0.0
+pyparsing==2.2.0
+requests==2.13.0
 six==1.10.0
-testfixtures==4.12.0
