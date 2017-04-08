@@ -89,7 +89,7 @@ setup(
     classifiers=[
         'Programming Language :: Python :: 3.5'
     ],
-    keywords='prosper eveonline api CREST',
+    keywords='prosper eve-online webhooks logging configuration-management',
     packages=hack_find_packages('prosper'),
     include_package_data=True,
     package_data={
