@@ -5,7 +5,7 @@ from setuptools import setup, find_packages
 from setuptools.command.test import test as TestCommand
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '0.6.1-6'
+__version__ = '0.6.1-7'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -73,21 +73,27 @@ class PyTest(TestCommand):
         errno = pytest.main(pytest_commands)
         exit(errno)
 
+with open('README.rst', 'r', 'utf-8') as f:
+    readme = f.read()
+
 setup(
     name='ProsperCommon',
+    description='Common Utilities for EVEProsper Projects',
+    version=__version__,
+    long_description=readme,
     author='John Purcell',
     author_email='prospermarketshow@gmail.com',
     url='https://github.com/EVEprosper/ProsperCommon',
     download_url='https://github.com/EVEprosper/ProsperCommon/tarball/v' + __version__,
-    version=__version__,
     license='MIT',
     classifiers=[
         'Programming Language :: Python :: 3.5'
     ],
     keywords='prosper eveonline api CREST',
     packages=hack_find_packages('prosper'),
-    #include_package_data=True,
+    include_package_data=True,
     package_data={
+        '': ['LICENSE', 'README.rst'],
         'prosper':[
             'common/common_config.cfg'
         ]
