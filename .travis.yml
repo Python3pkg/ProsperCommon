@@ -3,7 +3,6 @@ python:
   - "3.5"
 install: 
   - "pip install ."
-  - "pip install setuptools -U --force-reinstall"
 script: 
   - "python setup.py test"
 deploy:
