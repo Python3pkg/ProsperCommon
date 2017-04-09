@@ -94,8 +94,8 @@ setup(
     include_package_data=True,
     package_data={
         '': ['LICENSE', 'README.rst'],
-        'prosper':[
-            'common/common_config.cfg'
+        'prosper/common':[
+            'common_config.cfg'
         ]
     },
     install_requires=[
