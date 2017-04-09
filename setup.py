@@ -6,7 +6,7 @@ from setuptools.command.test import test as TestCommand
 from codecs import open
 
 HERE = path.abspath(path.dirname(__file__))
-__version__ = '1.0.0-5'
+__version__ = '1.0.0-6'
 __project_name__ = 'common'
 
 def hack_find_packages(include_str):
@@ -94,7 +94,7 @@ setup(
     include_package_data=True,
     package_data={
         '': ['LICENSE', 'README.rst'],
-        'prosper/common':[
+        'prosper.common':[
             'common_config.cfg'
         ]
     },
