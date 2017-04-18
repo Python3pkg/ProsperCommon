@@ -13,3 +13,6 @@ deploy:
   on:
     tags: true
     distributions: "sdist bdist_wheel"
+after_success:
+  - "pip install python-coveralls"
+  - "coveralls"
