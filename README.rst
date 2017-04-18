@@ -28,6 +28,6 @@ Functionality
 .. _ProsperConfig: https://github.com/EVEprosper/ProsperCommon/blob/master/docs/prosper_config.md
 
 .. |Build Status| image:: https://travis-ci.org/EVEprosper/ProsperCommon.svg?branch=master
-:target: https://travis-ci.org/EVEprosper/ProsperCommon
+    :target: https://travis-ci.org/EVEprosper/ProsperCommon
 .. |Coverage Status| image:: https://coveralls.io/repos/github/EVEprosper/ProsperCommon/badge.svg?branch=master
-:target: https://coveralls.io/github/EVEprosper/ProsperCommon?branch=master
+    :target: https://coveralls.io/github/EVEprosper/ProsperCommon?branch=master
