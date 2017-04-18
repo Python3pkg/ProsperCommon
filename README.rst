@@ -1,7 +1,7 @@
 ProsperCommon 
 =============
 
-|Build Status| |Coverage Status|
+|Build Status| |Coverage Status| |PyPI Badge|
 
 
 Common utilities for EVEProsper project. To
@@ -31,3 +31,5 @@ Functionality
     :target: https://travis-ci.org/EVEprosper/ProsperCommon
 .. |Coverage Status| image:: https://coveralls.io/repos/github/EVEprosper/ProsperCommon/badge.svg?branch=master
     :target: https://coveralls.io/github/EVEprosper/ProsperCommon?branch=master
+.. |PyPI Badge| image:: https://badge.fury.io/py/ProsperCommon.svg
+    :target: https://badge.fury.io/py/ProsperCommon
