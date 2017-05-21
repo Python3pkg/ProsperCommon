@@ -257,7 +257,7 @@ def test_iter_util(config=TEST_CONFIG):
         logging.StreamHandler                       #debug handler
     ]
     for indx, handler in enumerate(log_builder):
-        print(type(handler))
+        print((type(handler)))
         assert isinstance(handler, expected_handlers[indx])
 
 REQUEST_LOGNAME        = TEST_CONFIG.get_option('TEST', 'request_logname', None)
